@@ -661,20 +661,13 @@ const READINESS_REQUIREMENTS = [
 // Structure: { id, name, description, emoji, checkCondition, reward }.
 
 const BADGES = [
-  { id: "routine_streak", name: "Routine Ranger", description: "Complete all daily tasks for 5 days", 
-    emoji: "🏅", checkCondition: (gs) => (gs.dailyCareStreak || 0) >= 5, reward: { cash: 200 } },
-  { id: "trusted_partner", name: "Trusted Partner", description: "Reach 90 Trust", 
-    emoji: "🤝", checkCondition: (gs) => gs.pet.trust >= 90, reward: { cash: 150 } },
-  { id: "health_guardian", name: "Health Guardian", description: "Keep health 90+ for 7 days", 
-    emoji: "🩺", checkCondition: (gs) => gs.history.slice(-7).every(h => h && h.health >= 90), reward: { item: "bed" } },
-  { id: "steady_walker", name: "Trail Scout", description: "Complete 30 walks", 
-    emoji: "🥾", checkCondition: (gs) => (gs.dailyTaskTotals?.walk || 0) >= 30, reward: { cash: 120 } },
-  { id: "insured", name: "Safety First", description: "Maintain insurance for 14 days", 
-    emoji: "🛡️", checkCondition: (gs) => (gs.insurance?.daysCovered || 0) >= 14, reward: { cash: 180 } },
-  { id: "ethical_mentor", name: "Ethical Mentor", description: "Reach 80+ ethics score", 
-    emoji: "🌱", checkCondition: (gs) => gs.ethicsScore >= 80, reward: { cash: 200 } },
-  { id: "financial_planner", name: "Budget Boss", description: "$5,000 net worth", 
-    emoji: "💼", checkCondition: (gs) => (gs.stocks.reduce((sum, s) => sum + (s.owned * s.price), 0) + gs.cash) >= 5000, reward: { cash: 300 } }
+  { id: "routine_streak", name: "Routine Ranger", description: "Complete all daily tasks for 5 days", emoji: "🏅", checkCondition: (gs) => (gs.dailyCareStreak || 0) >= 5, reward: { cash: 200 } },
+  { id: "trusted_partner", name: "Trusted Partner", description: "Reach 90 Trust", emoji: "🤝", checkCondition: (gs) => gs.pet.trust >= 90, reward: { cash: 150 } },
+  { id: "health_guardian", name: "Health Guardian", description: "Keep health 90+ for 7 days", emoji: "🩺", checkCondition: (gs) => gs.history.slice(-7).every(h => h && h.health >= 90), reward: { item: "bed" } },
+  { id: "steady_walker", name: "Trail Scout", description: "Complete 30 walks", emoji: "🥾", checkCondition: (gs) => (gs.dailyTaskTotals?.walk || 0) >= 30, reward: { cash: 120 } },
+  { id: "insured", name: "Safety First", description: "Maintain insurance for 14 days", emoji: "🛡️", checkCondition: (gs) => (gs.insurance?.daysCovered || 0) >= 14, reward: { cash: 180 } },
+  { id: "ethical_mentor", name: "Ethical Mentor", description: "Reach 80+ ethics score", emoji: "🌱", checkCondition: (gs) => gs.ethicsScore >= 80, reward: { cash: 200 } },
+  { id: "financial_planner", name: "Budget Boss", description: "$5,000 net worth", emoji: "💼", checkCondition: (gs) => (gs.stocks.reduce((sum, s) => sum + (s.owned * s.price), 0) + gs.cash) >= 5000, reward: { cash: 300 } }
 ];
 
 // ============================================================================
@@ -2026,7 +2019,7 @@ export default function PawStreet() {
   const [gameState, setGameState] = useState(null);
   const [timelines, setTimelines] = useState([]);
   const [selectedTimeline, setSelectedTimeline] = useState(null);
-  const [view, setView] = useState("market"); // market, portfolio, pet, tutorial, help, analytics, badges, timelines
+  const [view, setView] = useState("tutorial"); // market, portfolio, pet, tutorial, help, analytics, badges, timelines
   const [actionLog, setActionLog] = useState([]);
   const [selectedAssetId, setSelectedAssetId] = useState(null);
   const [marketCategory, setMarketCategory] = useState("stocks");
