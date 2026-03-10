@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, Area, AreaChart } from 'recharts';
 
 // ============================================================================
@@ -661,13 +661,20 @@ const READINESS_REQUIREMENTS = [
 // Structure: { id, name, description, emoji, checkCondition, reward }.
 
 const BADGES = [
-  { id: "routine_streak", name: "Routine Ranger", description: "Complete all daily tasks for 5 days", emoji: "🏅", checkCondition: (gs) => (gs.dailyCareStreak || 0) >= 5, reward: { cash: 200 } },
-  { id: "trusted_partner", name: "Trusted Partner", description: "Reach 90 Trust", emoji: "🤝", checkCondition: (gs) => gs.pet.trust >= 90, reward: { cash: 150 } },
-  { id: "health_guardian", name: "Health Guardian", description: "Keep health 90+ for 7 days", emoji: "🩺", checkCondition: (gs) => gs.history.slice(-7).every(h => h && h.health >= 90), reward: { item: "bed" } },
-  { id: "steady_walker", name: "Trail Scout", description: "Complete 30 walks", emoji: "🥾", checkCondition: (gs) => (gs.dailyTaskTotals?.walk || 0) >= 30, reward: { cash: 120 } },
-  { id: "insured", name: "Safety First", description: "Maintain insurance for 14 days", emoji: "🛡️", checkCondition: (gs) => (gs.insurance?.daysCovered || 0) >= 14, reward: { cash: 180 } },
-  { id: "ethical_mentor", name: "Ethical Mentor", description: "Reach 80+ ethics score", emoji: "🌱", checkCondition: (gs) => gs.ethicsScore >= 80, reward: { cash: 200 } },
-  { id: "financial_planner", name: "Budget Boss", description: "$5,000 net worth", emoji: "💼", checkCondition: (gs) => (gs.stocks.reduce((sum, s) => sum + (s.owned * s.price), 0) + gs.cash) >= 5000, reward: { cash: 300 } }
+  { id: "routine_streak", name: "Routine Ranger", description: "Complete all daily tasks for 5 days", 
+    emoji: "🏅", checkCondition: (gs) => (gs.dailyCareStreak || 0) >= 5, reward: { cash: 200 } },
+  { id: "trusted_partner", name: "Trusted Partner", description: "Reach 90 Trust", 
+    emoji: "🤝", checkCondition: (gs) => gs.pet.trust >= 90, reward: { cash: 150 } },
+  { id: "health_guardian", name: "Health Guardian", description: "Keep health 90+ for 7 days", 
+    emoji: "🩺", checkCondition: (gs) => gs.history.slice(-7).every(h => h && h.health >= 90), reward: { item: "bed" } },
+  { id: "steady_walker", name: "Trail Scout", description: "Complete 30 walks", 
+    emoji: "🥾", checkCondition: (gs) => (gs.dailyTaskTotals?.walk || 0) >= 30, reward: { cash: 120 } },
+  { id: "insured", name: "Safety First", description: "Maintain insurance for 14 days", 
+    emoji: "🛡️", checkCondition: (gs) => (gs.insurance?.daysCovered || 0) >= 14, reward: { cash: 180 } },
+  { id: "ethical_mentor", name: "Ethical Mentor", description: "Reach 80+ ethics score", 
+    emoji: "🌱", checkCondition: (gs) => gs.ethicsScore >= 80, reward: { cash: 200 } },
+  { id: "financial_planner", name: "Budget Boss", description: "$5,000 net worth", 
+    emoji: "💼", checkCondition: (gs) => (gs.stocks.reduce((sum, s) => sum + (s.owned * s.price), 0) + gs.cash) >= 5000, reward: { cash: 300 } }
 ];
 
 // ============================================================================
@@ -685,6 +692,146 @@ const PET_BREEDS = {
   turtle: { emoji: "🐢", name: "Turtle" },
   fox: { emoji: "🦊", name: "Fox" }
 };
+
+const TUTORIAL_STEPS = [
+  {
+    id: "care",
+    title: "Care for your pet",
+    description: "Complete a care action to build trust and keep your pet healthy.",
+    action: { label: "Open Pet Care", view: "pet" },
+    progress: ({ gameState }) => `Meals today: ${gameState.dailyTasks?.feed || 0}/1`,
+    check: ({ gameState }) => (gameState.dailyTasks?.feed || 0) > 0
+  },
+  {
+    id: "trade",
+    title: "Make your first trade",
+    description: "Buy a stock to start building your portfolio.",
+    action: { label: "Open Market", view: "market" },
+    progress: ({ gameState }) => `Trades made: ${gameState.transactions?.length || 0}`,
+    check: ({ gameState }) => (gameState.transactions?.length || 0) > 0
+  },
+  {
+    id: "advance",
+    title: "Advance the day",
+    description: "Move to the next day to see how your pet and the market react.",
+    action: { label: "Open Pet Actions", view: "pet" },
+    progress: ({ gameState }) => `Current day: ${gameState.day}`,
+    check: ({ gameState }) => gameState.day > 1
+  },
+  {
+    id: "timeline",
+    title: "Save a timeline",
+    description: "Capture a checkpoint so you can compare multiple runs later.",
+    action: { label: "Open Timelines", view: "timelines" },
+    progress: ({ timelines }) => `Timelines saved: ${timelines.length}`,
+    check: ({ timelines }) => timelines.length > 0
+  }
+];
+
+const HELP_QUICK_PROMPTS = [
+  "How do I feed my pet?",
+  "How do evolutions work?",
+  "How do I buy stocks?",
+  "What affects my pet's mood?",
+  "How do I save a timeline?"
+];
+
+const getHelpResponse = (message, gameState) => {
+  const text = message.toLowerCase();
+
+  if (text.includes("hello") || text.includes("hi") || text.includes("hey")) {
+    return { text: "Hey! Ask me about pet care, trading, evolutions, or timelines. I can also jump you to the right tab." };
+  }
+
+  if (text.includes("feed") || text.includes("food") || text.includes("meal")) {
+    return {
+      text: "Go to the Pet tab, then use the Food section under Care Actions. Regular or premium meals boost health and happiness.",
+      viewAction: { label: "Open Pet", view: "pet" }
+    };
+  }
+
+  if (text.includes("walk") || text.includes("bathroom") || text.includes("activity") || text.includes("play")) {
+    return {
+      text: "Daily routine actions live in the Pet tab. Walks and play raise happiness and trust, bathroom breaks reduce stress.",
+      viewAction: { label: "Open Pet", view: "pet" }
+    };
+  }
+
+  if (text.includes("evolve") || text.includes("evolution")) {
+    return {
+      text: "Evolutions unlock after the early days. Your pet's health, trust, stress, ethics score, and finances shape the evolution title you earn.",
+      viewAction: { label: "Open Pet", view: "pet" }
+    };
+  }
+
+  if (text.includes("trade") || text.includes("buy") || text.includes("sell") || text.includes("stock") || text.includes("market")) {
+    return {
+      text: "Use the Market tab to select a stock, choose an amount, then buy or sell. Your pet's mood can influence price movements.",
+      viewAction: { label: "Open Market", view: "market" }
+    };
+  }
+
+  if (text.includes("portfolio")) {
+    return {
+      text: "The Portfolio tab shows holdings, cost basis, and recent transactions.",
+      viewAction: { label: "Open Portfolio", view: "portfolio" }
+    };
+  }
+
+  if (text.includes("badge") || text.includes("goal")) {
+    return {
+      text: "Badges track responsibility milestones. Visit the Badges tab to see progress and rewards.",
+      viewAction: { label: "Open Badges", view: "badges" }
+    };
+  }
+
+  if (text.includes("timeline")) {
+    return {
+      text: "Save a timeline to compare different runs. Open Timelines and click Save when you're ready.",
+      viewAction: { label: "Open Timelines", view: "timelines" }
+    };
+  }
+
+  if (text.includes("insurance")) {
+    return {
+      text: "Pet insurance is in the Pet tab. It lowers vet costs but has a daily premium.",
+      viewAction: { label: "Open Pet", view: "pet" }
+    };
+  }
+
+  if (text.includes("stress") || text.includes("happiness") || text.includes("mood")) {
+    return {
+      text: "Care actions, rest, and market performance all affect mood. High stress reduces performance, while happiness boosts it.",
+      viewAction: { label: "Open Pet", view: "pet" }
+    };
+  }
+
+  if (text.includes("tutorial")) {
+    return {
+      text: "The Tutorial tab walks you through core actions step by step.",
+      viewAction: { label: "Open Tutorial", view: "tutorial" }
+    };
+  }
+
+  if (text.includes("stats") || text.includes("status") || text.includes("how is my pet")) {
+    return {
+      text: `Your pet is ${gameState.pet.name}. Health ${Math.round(gameState.pet.health)}, Happiness ${Math.round(gameState.pet.happiness)}, Trust ${Math.round(gameState.pet.trust)}, Stress ${Math.round(gameState.pet.stress)}.`,
+      viewAction: { label: "Open Pet", view: "pet" }
+    };
+  }
+
+  return {
+    text: "I can help with pet care, trading, evolutions, badges, insurance, or timelines. Try one of the quick prompts below."
+  };
+};
+
+const createHelpWelcomeMessages = () => ([
+  {
+    id: `${Date.now()}-welcome`,
+    from: "bot",
+    text: "Hi! I'm the PawStreet helper. Ask me about care, trading, evolutions, or timelines."
+  }
+]);
 
 const createDailyTasksState = () => DAILY_TASKS.reduce((acc, task) => {
   acc[task.id] = 0;
@@ -1879,7 +2026,7 @@ export default function PawStreet() {
   const [gameState, setGameState] = useState(null);
   const [timelines, setTimelines] = useState([]);
   const [selectedTimeline, setSelectedTimeline] = useState(null);
-  const [view, setView] = useState("market"); // market, portfolio, pet, analytics, badges, timelines
+  const [view, setView] = useState("market"); // market, portfolio, pet, tutorial, help, analytics, badges, timelines
   const [actionLog, setActionLog] = useState([]);
   const [selectedAssetId, setSelectedAssetId] = useState(null);
   const [marketCategory, setMarketCategory] = useState("stocks");
@@ -1899,6 +2046,9 @@ export default function PawStreet() {
   const [hasSpunThisWeek, setHasSpunThisWeek] = useState(false);
   const [showFinalSummary, setShowFinalSummary] = useState(false);
   const [summarySnapshot, setSummarySnapshot] = useState(null);
+  const [tutorialStepIndex, setTutorialStepIndex] = useState(0);
+  const [tutorialOverrides, setTutorialOverrides] = useState({});
+  const [helpMessages, setHelpMessages] = useState(() => createHelpWelcomeMessages());
 
   // Add log function - must be defined before use
   const addLog = (message, type = "info") => {
@@ -3585,6 +3735,8 @@ export default function PawStreet() {
               { key: 'market', label: 'Market', icon: <TrendingUp size={18} /> },
               { key: 'portfolio', label: 'Portfolio', icon: <Briefcase size={18} /> },
               { key: 'pet', label: 'Pet', icon: <Heart size={18} /> },
+              { key: 'tutorial', label: 'Tutorial', icon: <Play size={18} /> },
+              { key: 'help', label: 'Help', icon: <Brain size={18} /> },
               { key: 'badges', label: 'Badges', icon: <BadgeIcon size={18} /> },
               { key: 'analytics', label: 'Analytics', icon: <BarChartIcon size={18} /> },
               { key: 'timelines', label: `Timelines (${timelines.length})`, icon: <Clock size={18} /> }
@@ -4578,6 +4730,29 @@ export default function PawStreet() {
               </details>
             </div>
           </div>
+        )}
+
+        {/* TUTORIAL VIEW */}
+        {view === "tutorial" && (
+          <TutorialPanel
+            gameState={gameState}
+            timelines={timelines}
+            setView={setView}
+            tutorialStepIndex={tutorialStepIndex}
+            setTutorialStepIndex={setTutorialStepIndex}
+            tutorialOverrides={tutorialOverrides}
+            setTutorialOverrides={setTutorialOverrides}
+          />
+        )}
+
+        {/* HELP VIEW */}
+        {view === "help" && (
+          <HelpChat
+            gameState={gameState}
+            setView={setView}
+            helpMessages={helpMessages}
+            setHelpMessages={setHelpMessages}
+          />
         )}
 
         {/* BADGES & GOALS VIEW */}
@@ -5678,6 +5853,296 @@ function PetVisual({ pet }) {
 
       {/* Glow effect */}
       <div className="absolute inset-0 bg-gradient-to-t from-transparent to-white/5 rounded-2xl pointer-events-none"></div>
+    </div>
+  );
+}
+
+// ============================================================================
+// TUTORIAL & HELP COMPONENTS
+// ============================================================================
+
+function TutorialPanel({
+  gameState,
+  timelines,
+  setView,
+  tutorialStepIndex,
+  setTutorialStepIndex,
+  tutorialOverrides,
+  setTutorialOverrides
+}) {
+  const steps = TUTORIAL_STEPS;
+  const isComplete = (step) => {
+    const autoComplete = step.check ? step.check({ gameState, timelines }) : false;
+    return tutorialOverrides[step.id] || autoComplete;
+  };
+  const completedCount = steps.filter(isComplete).length;
+  const progress = Math.round((completedCount / steps.length) * 100);
+  const safeIndex = Math.min(tutorialStepIndex, steps.length - 1);
+  const currentStep = steps[safeIndex];
+  const currentComplete = isComplete(currentStep);
+
+  const handleMarkComplete = () => {
+    setTutorialOverrides(prev => ({ ...prev, [currentStep.id]: true }));
+  };
+
+  const handleReset = () => {
+    setTutorialOverrides({});
+    setTutorialStepIndex(0);
+  };
+
+  const handleJumpNext = () => {
+    const nextIndex = steps.findIndex(step => !isComplete(step));
+    setTutorialStepIndex(nextIndex === -1 ? 0 : nextIndex);
+  };
+
+  const progressText = currentStep.progress
+    ? currentStep.progress({ gameState, timelines })
+    : null;
+
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      <div className="col-span-1 space-y-4">
+        <div className="bg-black/40 backdrop-blur border border-cyan-500/30 rounded-lg p-4">
+          <h2 className="text-xl font-bold text-cyan-300 mb-2">Interactive Tutorial</h2>
+          <div className="text-xs text-slate-400 mb-3">
+            Progress: {completedCount}/{steps.length} steps complete
+          </div>
+          <div className="w-full bg-slate-800 rounded-full h-2 mb-4">
+            <div
+              className="h-2 rounded-full bg-cyan-500 transition-all"
+              style={{ width: `${progress}%` }}
+            />
+          </div>
+          <div className="space-y-2">
+            {steps.map((step, index) => {
+              const done = isComplete(step);
+              return (
+                <button
+                  key={step.id}
+                  onClick={() => setTutorialStepIndex(index)}
+                  className={`w-full text-left p-2 rounded border transition ${
+                    index === safeIndex
+                      ? 'bg-cyan-900/40 border-cyan-500/60'
+                      : 'bg-slate-900/40 border-slate-700/60 hover:border-cyan-400/40'
+                  }`}
+                >
+                  <div className="flex items-center justify-between text-xs font-bold text-slate-200">
+                    <span>{index + 1}. {step.title}</span>
+                    <span>{done ? '✅' : '⏳'}</span>
+                  </div>
+                  <div className="text-[10px] text-slate-400 mt-1">
+                    {done ? "Complete" : "In progress"}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+          <div className="mt-4 space-y-2">
+            <button
+              onClick={handleJumpNext}
+              className="w-full px-3 py-2 rounded text-xs bg-slate-800 hover:bg-slate-700 transition"
+            >
+              Jump to next incomplete
+            </button>
+            <button
+              onClick={handleReset}
+              className="w-full px-3 py-2 rounded text-xs bg-slate-900 hover:bg-slate-800 transition"
+            >
+              Reset tutorial
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div className="col-span-2">
+        <div className="bg-black/40 backdrop-blur border border-purple-500/30 rounded-lg p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-2xl font-bold text-purple-300">
+              Step {safeIndex + 1}: {currentStep.title}
+            </h3>
+            {currentComplete && (
+              <span className="text-xs font-bold text-green-400">Completed</span>
+            )}
+          </div>
+          <p className="text-sm text-slate-200 mb-4">{currentStep.description}</p>
+          {progressText && (
+            <div className="text-xs text-cyan-200 mb-4">
+              Progress: {progressText}
+            </div>
+          )}
+          <div className="flex items-center gap-3">
+            {currentStep.action && (
+              <button
+                onClick={() => setView(currentStep.action.view)}
+                className="px-4 py-2 rounded text-sm font-bold bg-cyan-600 hover:bg-cyan-500 transition"
+              >
+                {currentStep.action.label}
+              </button>
+            )}
+            {!currentComplete && (
+              <button
+                onClick={handleMarkComplete}
+                className="px-4 py-2 rounded text-sm font-bold bg-emerald-600 hover:bg-emerald-500 transition"
+              >
+                Mark complete
+              </button>
+            )}
+            <button
+              onClick={() => setTutorialStepIndex(Math.max(0, safeIndex - 1))}
+              className="px-4 py-2 rounded text-sm bg-slate-800 hover:bg-slate-700 transition"
+            >
+              Back
+            </button>
+            <button
+              onClick={() => setTutorialStepIndex(Math.min(steps.length - 1, safeIndex + 1))}
+              className="px-4 py-2 rounded text-sm bg-slate-800 hover:bg-slate-700 transition"
+            >
+              Next
+            </button>
+          </div>
+          <div className="mt-6 bg-slate-900/50 border border-slate-700/50 rounded-lg p-4 text-xs text-slate-300">
+            Tip: Use the Help tab if you want quick answers or shortcuts to specific screens.
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function HelpChat({ gameState, setView, helpMessages, setHelpMessages }) {
+  const [draft, setDraft] = useState("");
+  const endRef = useRef(null);
+
+  useEffect(() => {
+    endRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [helpMessages]);
+
+  const sendMessage = (text) => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    const userMessage = {
+      id: `${Date.now()}-user-${Math.random()}`,
+      from: "user",
+      text: trimmed
+    };
+
+    const reply = getHelpResponse(trimmed, gameState);
+    const botMessage = {
+      id: `${Date.now()}-bot-${Math.random()}`,
+      from: "bot",
+      text: reply.text,
+      viewAction: reply.viewAction
+    };
+
+    setHelpMessages(prev => [...prev, userMessage, botMessage]);
+    setDraft("");
+  };
+
+  const handleSubmit = (event) => {
+    event.preventDefault();
+    sendMessage(draft);
+  };
+
+  return (
+    <div className="grid grid-cols-3 gap-4">
+      <div className="col-span-2 space-y-4">
+        <div className="bg-black/40 backdrop-blur border border-cyan-500/30 rounded-lg p-4">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="text-xl font-bold text-cyan-300">Help Chatbot</h2>
+            <button
+              onClick={() => setHelpMessages(createHelpWelcomeMessages())}
+              className="px-3 py-1 rounded text-xs bg-slate-800 hover:bg-slate-700 transition"
+            >
+              Clear chat
+            </button>
+          </div>
+
+          <div className="h-[420px] overflow-y-auto space-y-3 pr-2">
+            {helpMessages.map(message => (
+              <div
+                key={message.id}
+                className={`flex ${message.from === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div
+                  className={`max-w-[80%] rounded-lg px-3 py-2 text-sm ${
+                    message.from === "user"
+                      ? "bg-cyan-600 text-white"
+                      : "bg-slate-900/70 text-slate-200 border border-slate-700/60"
+                  }`}
+                >
+                  <div className="whitespace-pre-wrap">{message.text}</div>
+                  {message.viewAction && message.from === "bot" && (
+                    <button
+                      onClick={() => setView(message.viewAction.view)}
+                      className="mt-2 inline-flex px-2 py-1 rounded text-[11px] bg-cyan-600 hover:bg-cyan-500 transition"
+                    >
+                      {message.viewAction.label}
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+            <div ref={endRef} />
+          </div>
+
+          <form onSubmit={handleSubmit} className="mt-4 flex gap-2">
+            <input
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder="Ask a question about care, trading, or evolution..."
+              className="flex-1 bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400"
+            />
+            <button
+              type="submit"
+              className="px-4 py-2 rounded text-sm font-bold bg-cyan-600 hover:bg-cyan-500 transition"
+            >
+              Send
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <div className="col-span-1 space-y-4">
+        <div className="bg-black/40 backdrop-blur border border-purple-500/30 rounded-lg p-4">
+          <h3 className="text-sm font-bold text-purple-300 mb-3">Quick Prompts</h3>
+          <div className="space-y-2">
+            {HELP_QUICK_PROMPTS.map(prompt => (
+              <button
+                key={prompt}
+                onClick={() => sendMessage(prompt)}
+                className="w-full text-left text-xs px-3 py-2 rounded bg-slate-900/60 border border-slate-700/60 hover:border-purple-400/60 transition"
+              >
+                {prompt}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-black/40 backdrop-blur border border-emerald-500/30 rounded-lg p-4">
+          <h3 className="text-sm font-bold text-emerald-300 mb-3">Live Snapshot</h3>
+          <div className="text-xs text-slate-300 space-y-2">
+            <div className="flex justify-between">
+              <span>Day</span>
+              <span>{gameState.day}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Cash</span>
+              <span>${gameState.cash.toFixed(0)}</span>
+            </div>
+            <div className="flex justify-between">
+              <span>Pet Mood</span>
+              <span>{gameState.pet.evolution}</span>
+            </div>
+          </div>
+          <button
+            onClick={() => setView("pet")}
+            className="mt-3 w-full px-3 py-2 rounded text-xs bg-emerald-600 hover:bg-emerald-500 transition"
+          >
+            Open Pet
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
