@@ -1307,7 +1307,7 @@ const createMarket = () => ({
   daysSinceEvent: 0
 });
 
-const STARTING_CASH = 800;
+const STARTING_CASH = 1000;
 
 /**
  * Creates the full initial game state.
@@ -2042,6 +2042,7 @@ export default function PawStreet() {
   const [tutorialStepIndex, setTutorialStepIndex] = useState(0);
   const [tutorialOverrides, setTutorialOverrides] = useState({});
   const [helpMessages, setHelpMessages] = useState(() => createHelpWelcomeMessages());
+  const [analyticsChartMode, setAnalyticsChartMode] = useState("financial");
 
   // Add log function - must be defined before use
   const addLog = (message, type = "info") => {
@@ -4997,44 +4998,57 @@ export default function PawStreet() {
               
               {gameState.history.length > 1 ? (
                 <div className="space-y-8">
-                  {/* Net Worth Over Time */}
                   <div>
-                    <h3 className="text-lg font-bold text-cyan-400 mb-4">Financial Performance</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <AreaChart data={gameState.history}>
-                        <defs>
-                          <linearGradient id="netWorth" x1="0" y1="0" x2="0" y2="1">
-                            <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
-                            <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
-                          </linearGradient>
-                        </defs>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                        <XAxis dataKey="day" stroke="#64748b" />
-                        <YAxis stroke="#64748b" />
-                        <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #22d3ee' }} />
-                        <Area type="monotone" dataKey="netWorth" stroke="#a855f7" fillOpacity={1} fill="url(#netWorth)" />
-                        <Area type="monotone" dataKey="cash" stroke="#22c55e" fillOpacity={0.3} />
-                        <Area type="monotone" dataKey="portfolioValue" stroke="#3b82f6" fillOpacity={0.3} />
-                      </AreaChart>
-                    </ResponsiveContainer>
-                  </div>
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
+                      <h3 className="text-lg font-bold text-cyan-400">
+                        {analyticsChartMode === "financial" ? "Financial Performance" : "Pet Wellbeing vs Financial State"}
+                      </h3>
+                      <div className="flex items-center gap-2 text-xs text-slate-300">
+                        <span>Chart</span>
+                        <select
+                          value={analyticsChartMode}
+                          onChange={(event) => setAnalyticsChartMode(event.target.value)}
+                          className="bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-slate-200 focus:outline-none focus:border-cyan-400"
+                        >
+                          <option value="financial">Financial Performance</option>
+                          <option value="pet">Pet Wellbeing</option>
+                        </select>
+                      </div>
+                    </div>
 
-                  {/* Pet Health vs Financial Awareness */}
-                  <div>
-                    <h3 className="text-lg font-bold text-cyan-400 mb-4">Pet Wellbeing vs Financial State</h3>
-                    <ResponsiveContainer width="100%" height={300}>
-                      <LineChart data={gameState.history}>
-                        <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
-                        <XAxis dataKey="day" stroke="#64748b" />
-                        <YAxis stroke="#64748b" />
-                        <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #22d3ee' }} />
-                        <Legend />
-                        <Line type="monotone" dataKey="health" stroke="#ef4444" strokeWidth={2} />
-                        <Line type="monotone" dataKey="happiness" stroke="#facc15" strokeWidth={2} />
-                        <Line type="monotone" dataKey="financialAwareness" stroke="#a855f7" strokeWidth={2} />
-                        <Line type="monotone" dataKey="trust" stroke="#ec4899" strokeWidth={2} />
-                      </LineChart>
-                    </ResponsiveContainer>
+                    {analyticsChartMode === "financial" ? (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <AreaChart data={gameState.history}>
+                          <defs>
+                            <linearGradient id="netWorth" x1="0" y1="0" x2="0" y2="1">
+                              <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.8}/>
+                              <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0}/>
+                            </linearGradient>
+                          </defs>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                          <XAxis dataKey="day" stroke="#64748b" />
+                          <YAxis stroke="#64748b" />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #22d3ee' }} />
+                          <Area type="monotone" dataKey="netWorth" stroke="#a855f7" fillOpacity={1} fill="url(#netWorth)" />
+                          <Area type="monotone" dataKey="cash" stroke="#22c55e" fillOpacity={0.3} />
+                          <Area type="monotone" dataKey="portfolioValue" stroke="#3b82f6" fillOpacity={0.3} />
+                        </AreaChart>
+                      </ResponsiveContainer>
+                    ) : (
+                      <ResponsiveContainer width="100%" height={300}>
+                        <LineChart data={gameState.history}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="#334155" />
+                          <XAxis dataKey="day" stroke="#64748b" />
+                          <YAxis stroke="#64748b" />
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #22d3ee' }} />
+                          <Legend />
+                          <Line type="monotone" dataKey="health" stroke="#ef4444" strokeWidth={2} />
+                          <Line type="monotone" dataKey="happiness" stroke="#facc15" strokeWidth={2} />
+                          <Line type="monotone" dataKey="financialAwareness" stroke="#a855f7" strokeWidth={2} />
+                          <Line type="monotone" dataKey="trust" stroke="#ec4899" strokeWidth={2} />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    )}
                   </div>
 
                   {/* Key Metrics */}
