@@ -419,7 +419,7 @@ const generateStockNews = (stock, pet, market, day) => {
 
 // Structure notes:
 // - stressMultiplier affects how quickly stress rises overall
-// - traits define situational bonuses/penalties used in the AI engine
+// - traits define situational bonuses/penalties used in the decision engine
 const PET_PERSONALITIES = {
   cautious: {
     name: "Cautious",
@@ -503,13 +503,13 @@ const ROOM_ITEMS = {
 };
 
 // ============================================================================
-// PET TRAINING SKILLS (Feature #8)
+// PET COACHING SKILLS (Feature #8)
 // ============================================================================
 // Skills give long-term progression and small systemic advantages.
 // Effects are expressed as percentages so they scale with game state.
 // Structure: { name, emoji, maxLevel, costPerLevel, description, effects }.
 
-const TRAINING_SKILLS = {
+const COACHING_SKILLS = {
   marketIntuition: {
     name: "Market Intuition",
     emoji: "🔮",
@@ -545,12 +545,12 @@ const TRAINING_SKILLS = {
 };
 
 // ============================================================================
-// DAILY RESPONSIBILITY ROUTINE
+// DAY RESPONSIBILITY ROUTINE
 // ============================================================================
 // Daily tasks teach real-world pet ownership habits. Completing all tasks
 // builds responsibility points and feeds into the end-of-program readiness score.
 
-const DAILY_TASKS = [
+const DAY_TASKS = [
   {
     id: "feed",
     label: "Meals",
@@ -589,19 +589,19 @@ const DAILY_TASKS = [
   }
 ];
 
-const DAILY_TASK_COOLDOWN_MS = 5000;
-const DAILY_TASK_OVERUSE_GRACE = 1;
+const DAY_TASK_COOLDOWN_MS = 5000;
+const DAY_TASK_OVERUSE_GRACE = 1;
 
-const DAILY_TASK_OVERUSE_PENALTIES = {
+const DAY_TASK_OVERUSE_PENALTIES = {
   feed: { health: -2, happiness: -3, stress: 4 },
   bathroom: { happiness: -2, stress: 3 },
   walk: { health: -1, happiness: -2, stress: 3, energy: -6 },
   activity: { happiness: -3, stress: 4, trust: -1 }
 };
 
-const DEFAULT_DAILY_OVERUSE_PENALTY = { health: -2, happiness: -3, stress: 4 };
+const DEFAULT_DAY_OVERUSE_PENALTY = { health: -2, happiness: -3, stress: 4 };
 
-const DAILY_TASK_ITEM_MAP = {
+const DAY_TASK_ITEM_MAP = {
   food_cheap: "feed",
   food_regular: "feed",
   food_premium: "feed",
@@ -826,28 +826,28 @@ const createHelpWelcomeMessages = () => ([
   }
 ]);
 
-const createDailyTasksState = () => DAILY_TASKS.reduce((acc, task) => {
+const createDailyTasksState = () => DAY_TASKS.reduce((acc, task) => {
   acc[task.id] = 0;
   return acc;
 }, {});
 
-const createDailyTaskCooldowns = () => DAILY_TASKS.reduce((acc, task) => {
+const createDailyTaskCooldowns = () => DAY_TASKS.reduce((acc, task) => {
   acc[task.id] = 0;
   return acc;
 }, {});
 
-const createDailyTaskTotals = () => DAILY_TASKS.reduce((acc, task) => {
+const createDailyTaskTotals = () => DAY_TASKS.reduce((acc, task) => {
   acc[task.id] = 0;
   return acc;
 }, {});
 
 const calculateDailyCompletion = (dailyTasks) => {
   if (!dailyTasks) return 0;
-  const total = DAILY_TASKS.reduce((sum, task) => {
+  const total = DAY_TASKS.reduce((sum, task) => {
     const done = Math.min(dailyTasks[task.id] || 0, task.target);
     return sum + (done / task.target);
   }, 0);
-  return total / DAILY_TASKS.length;
+  return total / DAY_TASKS.length;
 };
 
 const getResponsibilityLevelInfo = (points) => {
@@ -881,14 +881,14 @@ const scaleStatDelta = (delta, multiplier) => {
   }, {});
 };
 
-const getDailyTaskConfig = (taskId) => DAILY_TASKS.find(task => task.id === taskId);
+const getDailyTaskConfig = (taskId) => DAY_TASKS.find(task => task.id === taskId);
 
-const getDailyTaskIdForItem = (item) => DAILY_TASK_ITEM_MAP[item] || null;
+const getDailyTaskIdForItem = (item) => DAY_TASK_ITEM_MAP[item] || null;
 
 const getDailyTaskCooldownRemainingMs = (state, taskId) => {
   if (!state?.dailyTaskCooldowns) return 0;
   const lastAt = state.dailyTaskCooldowns[taskId] || 0;
-  const remaining = DAILY_TASK_COOLDOWN_MS - (Date.now() - lastAt);
+  const remaining = DAY_TASK_COOLDOWN_MS - (Date.now() - lastAt);
   return remaining > 0 ? remaining : 0;
 };
 
@@ -897,7 +897,7 @@ const getDailyTaskOveruseCount = (state, taskId) => {
   if (!task) return 0;
   const current = state.dailyTasks?.[taskId] || 0;
   const overuse = current - task.target + 1;
-  return Math.max(0, overuse - DAILY_TASK_OVERUSE_GRACE);
+  return Math.max(0, overuse - DAY_TASK_OVERUSE_GRACE);
 };
 
 const buildReadinessReport = (state) => {
@@ -1612,20 +1612,20 @@ const generateMarketEvent = (day, market, pet) => {
 };
 
 // ============================================================================
-// AUTONOMOUS PET AI - RESPONDS TO FINANCIAL STRESS
+// AUTONOMOUS PET DECISION ENGINE - RESPONDS TO FINANCIAL STRESS
 // ============================================================================
 // The pet adapts to the player's financial health to create emotional feedback
 // loops that influence the market (and therefore the player's decisions).
 
 /**
  * Determines pet behavioral decisions based on current finances and holdings.
- * This is the heart of the "pet AI" system and drives emergent gameplay.
+ * This is the heart of the pet decision system and drives emergent gameplay.
  *
  * @param {Object} pet - Pet state
  * @param {number} portfolioValue - Current portfolio valuation
  * @param {number} cash - Current liquid cash
  * @param {Array} stocks - Stock list with holdings and ethics ratings
- * @returns {{decisions: Array, newFinancialAwareness: number}} AI decisions and updated awareness
+ * @returns {{decisions: Array, newFinancialAwareness: number}} Decisions and updated awareness
  */
 const petDecisionEngine = (pet, portfolioValue, cash, stocks) => {
   const decisions = [];
@@ -1772,7 +1772,7 @@ const calculateCareCost = (item, stocks, pet, cash, insurance) => {
 
 /**
  * Updates the pet's memory stats based on a care action and finances.
- * Memory is used later for evolution and AI behavior to create continuity.
+ * Memory is used later for evolution and decision behavior to create continuity.
  *
  * @param {Object} pet - Current pet state
  * @param {string} action - Action type (feed, vet, play)
@@ -2010,7 +2010,7 @@ function WelcomeScreen({ onStart }) {
 }
 
 // ============================================================================
-// MAIN COMPONENT
+// CORE COMPONENT
 // ============================================================================
 // Orchestrates game state, UI routing, and all player interactions.
 
@@ -2182,7 +2182,7 @@ export default function PawStreet() {
     if (!state.dailyTasks) state.dailyTasks = createDailyTasksState();
     if (!state.dailyTaskTotals) state.dailyTaskTotals = createDailyTaskTotals();
     if (!state.dailyTaskCooldowns) state.dailyTaskCooldowns = createDailyTaskCooldowns();
-    const task = DAILY_TASKS.find(t => t.id === taskId);
+    const task = DAY_TASKS.find(t => t.id === taskId);
     if (!task) return;
 
     state.dailyTaskCooldowns[taskId] = Date.now();
@@ -2798,7 +2798,7 @@ export default function PawStreet() {
     }
 
     if (taskId && overuseCount > 0) {
-      const penalty = DAILY_TASK_OVERUSE_PENALTIES[taskId] || DEFAULT_DAILY_OVERUSE_PENALTY;
+      const penalty = DAY_TASK_OVERUSE_PENALTIES[taskId] || DEFAULT_DAY_OVERUSE_PENALTY;
       applyStatDelta(newPet, scaleStatDelta(penalty, overuseCount));
       const label = getDailyTaskConfig(taskId)?.label || taskId;
       addLog(`⚠️ Overdoing ${label.toLowerCase()} is wearing ${newPet.name} out.`, "care");
@@ -2848,7 +2848,7 @@ export default function PawStreet() {
 
     const activityOveruse = getDailyTaskOveruseCount(newState, "activity");
     if (activityOveruse > 0) {
-      const penalty = DAILY_TASK_OVERUSE_PENALTIES.activity || DEFAULT_DAILY_OVERUSE_PENALTY;
+      const penalty = DAY_TASK_OVERUSE_PENALTIES.activity || DEFAULT_DAY_OVERUSE_PENALTY;
       applyStatDelta(newPet, scaleStatDelta(penalty, activityOveruse));
       addLog(`⚠️ Too much activity is wearing ${newPet.name} out.`, "care");
     }
@@ -2905,7 +2905,7 @@ export default function PawStreet() {
   };
 
   const trainSkill = (skillKey) => {
-    const skill = TRAINING_SKILLS[skillKey];
+    const skill = COACHING_SKILLS[skillKey];
     const currentLevel = gameState.pet.skills[skillKey];
     
     if (currentLevel >= skill.maxLevel) {
@@ -3067,7 +3067,7 @@ export default function PawStreet() {
 
   /**
    * Advances the game by one in-game day.
-   * This bundles market updates, pet AI decisions, sickness checks, and history logs.
+   * This bundles market updates, pet decisions, sickness checks, and history logs.
    * It is the core "turn" in the simulation.
    */
   const nextDay = () => {
@@ -3214,14 +3214,14 @@ export default function PawStreet() {
     if (newPet.skills) {
       // Stress Management reduces stress
       if (newPet.skills.stressManagement > 0) {
-        const skill = TRAINING_SKILLS.stressManagement;
+        const skill = COACHING_SKILLS.stressManagement;
         const reduction = skill.effects[newPet.skills.stressManagement]?.stressReduction || 0;
         newPet.stress = Math.max(0, newPet.stress * (1 - reduction));
       }
       
       // Luck increases chance of positive events
       if (newPet.skills.luck > 0 && Math.random() < 0.1) {
-        const skill = TRAINING_SKILLS.luck;
+        const skill = COACHING_SKILLS.luck;
         const luckyChance = skill.effects[newPet.skills.luck]?.luckyEventChance || 0;
         
         if (Math.random() < luckyChance) {
@@ -3313,7 +3313,7 @@ export default function PawStreet() {
       const dailyCompletion = calculateDailyCompletion(newState.dailyTasks);
       newState.dailyCompletionHistory = [...(newState.dailyCompletionHistory || []), dailyCompletion];
 
-      DAILY_TASKS.forEach(task => {
+      DAY_TASKS.forEach(task => {
         const done = newState.dailyTasks[task.id] || 0;
         if (done >= task.target) {
           applyStatDelta(newPet, task.completionBonus);
@@ -4452,7 +4452,7 @@ export default function PawStreet() {
               <div className="bg-black/40 backdrop-blur border border-emerald-500/30 rounded-lg p-4">
                 <h3 className="text-lg font-bold text-emerald-300 mb-3">Daily Routine</h3>
                 <div className="space-y-3 text-xs">
-                  {DAILY_TASKS.map(task => {
+                  {DAY_TASKS.map(task => {
                     const done = gameState.dailyTasks?.[task.id] || 0;
                     const progress = (done / task.target) * 100;
                     return (
@@ -4482,7 +4482,7 @@ export default function PawStreet() {
                 <div className="space-y-4">
                   <div>
                     <h4 className="text-sm text-purple-400 mb-2">
-                      🍖 Food ({gameState.dailyTasks?.feed || 0}/{DAILY_TASKS.find(t => t.id === "feed").target})
+                      🍖 Food ({gameState.dailyTasks?.feed || 0}/{DAY_TASKS.find(t => t.id === "feed").target})
                     </h4>
                     <div className="space-y-2">
                       <CareButton
@@ -4514,7 +4514,7 @@ export default function PawStreet() {
 
                   <div>
                     <h4 className="text-sm text-purple-400 mb-2">
-                      🚽 Bathroom ({gameState.dailyTasks?.bathroom || 0}/{DAILY_TASKS.find(t => t.id === "bathroom").target})
+                      🚽 Bathroom ({gameState.dailyTasks?.bathroom || 0}/{DAY_TASKS.find(t => t.id === "bathroom").target})
                     </h4>
                     <CareButton
                       label="Bathroom Break (Free)"
@@ -4524,7 +4524,7 @@ export default function PawStreet() {
 
                   <div>
                     <h4 className="text-sm text-purple-400 mb-2">
-                      🦮 Walk ({gameState.dailyTasks?.walk || 0}/{DAILY_TASKS.find(t => t.id === "walk").target})
+                      🦮 Walk ({gameState.dailyTasks?.walk || 0}/{DAY_TASKS.find(t => t.id === "walk").target})
                     </h4>
                     <CareButton
                       label={`Walk ($${calculateCareCost('walk', gameState.stocks, gameState.pet, gameState.cash, gameState.insurance)})`}
@@ -4535,7 +4535,7 @@ export default function PawStreet() {
 
                   <div>
                     <h4 className="text-sm text-purple-400 mb-2">
-                      🎾 Activity ({gameState.dailyTasks?.activity || 0}/{DAILY_TASKS.find(t => t.id === "activity").target})
+                      🎾 Activity ({gameState.dailyTasks?.activity || 0}/{DAY_TASKS.find(t => t.id === "activity").target})
                     </h4>
                     <CareButton
                       label={`Play ($${calculateCareCost('play', gameState.stocks, gameState.pet, gameState.cash, gameState.insurance)})`}
@@ -4657,7 +4657,7 @@ export default function PawStreet() {
                   <span className="text-xs text-slate-400">Skills</span>
                 </summary>
                 <div className="mt-3 space-y-2">
-                  {Object.entries(TRAINING_SKILLS).map(([key, skill]) => {
+                  {Object.entries(COACHING_SKILLS).map(([key, skill]) => {
                     const currentLevel = gameState.pet.skills ? (gameState.pet.skills[key] || 0) : 0;
                     const maxed = currentLevel >= skill.maxLevel;
                     const cost = skill.costPerLevel * (currentLevel + 1);
@@ -4692,12 +4692,12 @@ export default function PawStreet() {
                 </div>
               </details>
 
-              {/* AI Decision Engine Status */}
+              {/* Decision Engine Status */}
               <details className="bg-black/40 backdrop-blur border border-cyan-500/30 rounded-lg p-4">
                 <summary className="cursor-pointer list-none flex items-center justify-between text-sm font-bold text-cyan-300">
                   <span className="flex items-center gap-2">
                     <Brain size={16} />
-                    AI Decision Engine
+                    Decision Engine
                   </span>
                   <span className="text-xs text-slate-400">Insights</span>
                 </summary>
@@ -4780,7 +4780,7 @@ export default function PawStreet() {
               <div className="bg-black/40 backdrop-blur border border-cyan-500/30 rounded-lg p-6">
                 <h3 className="text-lg font-bold text-cyan-300 mb-3">Daily Responsibility Routine</h3>
                 <div className="grid grid-cols-2 gap-4">
-                  {DAILY_TASKS.map(task => {
+                  {DAY_TASKS.map(task => {
                     const done = gameState.dailyTasks?.[task.id] || 0;
                     const progress = (done / task.target) * 100;
                     return (
@@ -5209,7 +5209,7 @@ export default function PawStreet() {
             PAWSTREET - Virtual Pet Market Simulation
           </div>
           <div>
-            Fictional Market | Autonomous Pet AI | Dynamic Care Costs | Memory System | Ethical Investing | Parallel Timelines
+            Fictional Market | Autonomous Pet Logic | Dynamic Care Costs | Memory System | Ethical Investing | Parallel Timelines
           </div>
           <div className="mt-2 text-cyan-400/40">
             Educational simulation only. Not financial advice. All companies and markets are fictional.
