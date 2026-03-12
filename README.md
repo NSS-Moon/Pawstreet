@@ -883,7 +883,7 @@ Thank you for playing PAWSTREET! 🐾📈
 ---
 
 **Project Stats:**
-- 📝 Lines of Code: ~4,200
+- 📝 Lines of Code: ~6,200
 - 🎮 Features Implemented: 40+
 - ⏱️ Development Time: 5 months, 13 days
 - 💡 Original Concepts: 10+
