@@ -973,8 +973,8 @@ const generateHistoricalPrices = (basePrice, volatility, days = 30) => {
     
     currentPrice = currentPrice * (1 + totalChange);
     
-    // Clamp to keep charts readable and prevent extremes at startup.
-    currentPrice = Math.max(basePrice * 0.4, Math.min(basePrice * 2.5, currentPrice));
+    // Keep a floor to avoid negative or zero prices at startup.
+    currentPrice = Math.max(basePrice * 0.4, currentPrice);
     
     history.push({
       day: i,
@@ -1509,8 +1509,8 @@ const updateStockPricesWithPetEmotion = (stocks, market, pet, currentDay, curren
     
     const newPrice = stock.price * (1 + totalChange);
     
-    // Clamp prices to avoid runaway values and keep the simulation readable.
-    const clampedPrice = Math.max(stock.basePrice * 0.3, Math.min(stock.basePrice * 3, newPrice));
+    // Keep a floor to avoid negative or zero prices.
+    const clampedPrice = Math.max(stock.basePrice * 0.3, newPrice);
     
     // Add to price history (every tick gets a unique x value for charting).
     const updatedHistory = [
