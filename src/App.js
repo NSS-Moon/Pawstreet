@@ -610,6 +610,9 @@ const DAY_TASK_ITEM_MAP = {
   play: "activity"
 };
 
+const PET_TICK_MARKET_INTERVAL = 3;
+const PET_TICK_DECAY = { health: -1, energy: -2, happiness: -1, hunger: 5, stress: 1 };
+
 // ============================================================================
 // PET INSURANCE PLANS
 // ============================================================================
@@ -881,6 +884,12 @@ const scaleStatDelta = (delta, multiplier) => {
   }, {});
 };
 
+const applyPetTickDecay = (pet) => {
+  const updated = { ...pet };
+  applyStatDelta(updated, PET_TICK_DECAY);
+  return updated;
+};
+
 const getDailyTaskConfig = (taskId) => DAY_TASKS.find(task => task.id === taskId);
 
 const getDailyTaskIdForItem = (item) => DAY_TASK_ITEM_MAP[item] || null;
@@ -974,7 +983,7 @@ const generateHistoricalPrices = (basePrice, volatility, days = 30) => {
     currentPrice = currentPrice * (1 + totalChange);
     
     // Keep a floor to avoid negative or zero prices at startup.
-    currentPrice = Math.max(basePrice * 0.4, currentPrice);
+    currentPrice = Math.max(basePrice * 0.4, Math.min(MAX_STOCK_PRICE, currentPrice));
     
     history.push({
       day: i,
@@ -1360,7 +1369,8 @@ const createGameState = (gameLength = 90) => {
     },
     minigamesWon: 0,
     tickCounter: initialTickCounter,
-    tickInDay: 0
+    tickInDay: 0,
+    petTickCounter: 0
   };
 };
 
@@ -1377,6 +1387,7 @@ const createGameState = (gameLength = 90) => {
 // This gives a realistic-feeling market while rewarding good pet care.
 
 const PRICE_SWING_MULTIPLIER = 1.6;
+const MAX_STOCK_PRICE = 1000000;
 
 /**
  * Calculates a simplified emotional state based on key pet stats.
@@ -1510,7 +1521,7 @@ const updateStockPricesWithPetEmotion = (stocks, market, pet, currentDay, curren
     const newPrice = stock.price * (1 + totalChange);
     
     // Keep a floor to avoid negative or zero prices.
-    const clampedPrice = Math.max(stock.basePrice * 0.3, newPrice);
+    const clampedPrice = Math.max(stock.basePrice * 0.3, Math.min(MAX_STOCK_PRICE, newPrice));
     
     // Add to price history (every tick gets a unique x value for charting).
     const updatedHistory = [
@@ -2567,6 +2578,13 @@ export default function PawStreet() {
         newState.tickCounter,
         newState.tickInDay
       );
+
+      newState.petTickCounter = (newState.petTickCounter || 0) + 1;
+      if (newState.petTickCounter % PET_TICK_MARKET_INTERVAL === 0) {
+        newPet = applyPetTickDecay(newPet);
+      }
+
+      newState.pet = newPet;
       
       return newState;
     });
@@ -3019,13 +3037,13 @@ export default function PawStreet() {
       case 'market_boost':
         newState.stocks = newState.stocks.map(stock => ({
           ...stock,
-          price: stock.price * (1 + event.value)
+          price: Math.max(stock.basePrice * 0.3, Math.min(MAX_STOCK_PRICE, stock.price * (1 + event.value)))
         }));
         break;
       case 'market_crash':
         newState.stocks = newState.stocks.map(stock => ({
           ...stock,
-          price: stock.price * (1 + event.value)
+          price: Math.max(stock.basePrice * 0.3, Math.min(MAX_STOCK_PRICE, stock.price * (1 + event.value)))
         }));
         break;
       case 'volatility':
@@ -3441,6 +3459,7 @@ export default function PawStreet() {
     snapshot.responsibilityPoints = snapshot.responsibilityPoints || 0;
     snapshot.insurance = snapshot.insurance || { active: false, plan: "basic", daysCovered: 0, missedPayments: 0 };
     snapshot.gameLength = snapshot.gameLength || 90;
+    snapshot.petTickCounter = snapshot.petTickCounter || 0;
     setGameState(snapshot);
     setSelectedTimeline(timeline);
     setView("market");
