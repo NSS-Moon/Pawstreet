@@ -689,6 +689,114 @@ const PET_BREEDS = {
   fox: { emoji: "🦊", name: "Fox" }
 };
 
+// ============================================================================
+// PIXELATED PET SPRITES
+// ============================================================================
+// Each breed has a small color palette plus a set of 16x16 frame grids. Every
+// grid row is a string of single-character pixel codes:
+//   '.' transparent  K/E dark outline+eyes  W highlight  N pink nose
+//   A primary body   B secondary (belly/muzzle)  C accent (ears/fins/shell)
+// Frames are rendered to crisp base64 SVG data URLs at runtime and cycled for a
+// lightweight idle animation (blink). This replaces the old emoji-only display
+// while keeping rendering pixel-perfect (image-rendering: pixelated).
+
+const SPRITE_BASE_PALETTE = { ".": null, K: "#1b1424", E: "#1b1424", W: "#ffffff", N: "#ff7aa2" };
+
+const PET_SPRITES = {
+  cat: {
+    palette: { ...SPRITE_BASE_PALETTE, A: "#f5a04e", B: "#ffe0b2", C: "#d97a36" },
+    frames: [
+      ["....KKK..KKK....", "..KKKAK..KAKKK..", "..KACAK..KACAK..", "..KAAAKKKKAAAK..", "..KKKKAAAAKKKK..", "..KKAAAAAAAAKK..", "..KAAAAAAAAAAK..", "..KAAAAAAAAAAK..", "..KAAEAAAAEAAK..", "..KAAABBBBAAAK..", ".KKAABBNNBBAAKK.", "..KKAABBBBAAKK..", "...KKKAAAAKKK...", ".....KKKKKK.....", "................", "................"],
+      ["....KKK..KKK....", "..KKKAK..KAKKK..", "..KACAK..KACAK..", "..KAAAKKKKAAAK..", "..KKKKAAAAKKKK..", "..KKAAAAAAAAKK..", "..KAAAAAAAAAAK..", "..KAAAAAAAAAAK..", "..KAAKAAAAKAAK..", "..KAAABBBBAAAK..", ".KKAABBNNBBAAKK.", "..KKAABBBBAAKK..", "...KKKAAAAKKK...", ".....KKKKKK.....", "................", "................"],
+    ],
+  },
+  dog: {
+    palette: { ...SPRITE_BASE_PALETTE, A: "#c8895a", B: "#f0d6b8", C: "#8a5a36" },
+    frames: [
+      ["................", "................", "................", ".....KKKKKK.....", "KKKKKKAAAAKKKKKK", "KCCCAAAAAAAACCCK", "KCCCAAAAAAAACCCK", "KCCAAAAAAAAAACCK", "KCCAAEABBAEAACCK", "KCCAABBBBBBAACCK", "KCCCABBEEBBACCCK", "KCCCABBEEBBACCCK", "KKKKKKAKKAKKKKKK", ".....KKKKKK.....", "................", "................"],
+      ["................", "................", "................", ".....KKKKKK.....", "KKKKKKAAAAKKKKKK", "KCCCAAAAAAAACCCK", "KCCCAAAAAAAACCCK", "KCCAAAAAAAAAACCK", "KCCAAKABBAKAACCK", "KCCAABBBBBBAACCK", "KCCCABBKKBBACCCK", "KCCCABBKKBBACCCK", "KKKKKKAKKAKKKKKK", ".....KKKKKK.....", "................", "................"],
+    ],
+  },
+  rabbit: {
+    palette: { ...SPRITE_BASE_PALETTE, A: "#e8e8f0", B: "#f7c9d6", C: "#f49ab0" },
+    frames: [
+      ["....KAAKKAAK....", "....KCAKKACK....", "....KCAKKACK....", "....KCAKKACK....", "....KCAKKACK....", "....KCAKKACK....", "....KAAKKAAK....", "...KKAAAAAAKK...", "...KAAAAAAAAK...", "..KKAAAAAAAAKK..", "..KAAEAAAAEAAK..", "..KKAABBBBAAKK..", "...KAABNNBAAK...", "...KKABBBBAKK...", "....KKKKKKKK....", "................"],
+      ["....KAAKKAAK....", "....KCAKKACK....", "....KCAKKACK....", "....KCAKKACK....", "....KCAKKACK....", "....KCAKKACK....", "....KAAKKAAK....", "...KKAAAAAAKK...", "...KAAAAAAAAK...", "..KKAAAAAAAAKK..", "..KAAKAAAAKAAK..", "..KKAABBBBAAKK..", "...KAABNNBAAK...", "...KKABBBBAKK...", "....KKKKKKKK....", "................"],
+    ],
+  },
+  hamster: {
+    palette: { ...SPRITE_BASE_PALETTE, A: "#e8b765", B: "#fff0d4", C: "#c98f3e" },
+    frames: [
+      ["................", "................", "................", "..KKKK....KKKK..", "..KAAKKKKKKAAK..", "..KAAAAAAAAAAK..", "..KKAAAAAAAAKK..", "..KAAAAAAAAAAK..", "..KAAEAAAAEAAK..", "..KAAABBBBAAAK..", "..KAABBNNBBAAK..", "..KAABBBBBBAAK..", "..KKABBBBBBAKK..", "...KKABBBBAKK...", "....KKKKKKKK....", "................"],
+      ["................", "................", "................", "..KKKK....KKKK..", "..KAAKKKKKKAAK..", "..KAAAAAAAAAAK..", "..KKAAAAAAAAKK..", "..KAAAAAAAAAAK..", "..KAAKAAAAKAAK..", "..KAAABBBBAAAK..", "..KAABBNNBBAAK..", "..KAABBBBBBAAK..", "..KKABBBBBBAKK..", "...KKABBBBAKK...", "....KKKKKKKK....", "................"],
+    ],
+  },
+  bird: {
+    palette: { ...SPRITE_BASE_PALETTE, A: "#5bb8e8", B: "#fff3c4", C: "#2f8fc4" },
+    frames: [
+      ["................", "......KKKK......", "......KCCK......", ".....KKCCKK.....", "....KKAAAAKK....", "...KKAAAAAAKK...", "...KAAAAAAAAK...", "..KKAEAAAAEAKK..", "..KAAAAAAAACCK..", "..KKAABNNBACCK..", "...KABBNBBBCCK..", "...KKBBBBBBKKK..", "....KBBBBBBK....", "....KKBBBBKK....", ".....KKKKKK.....", "................"],
+      ["................", "......KKKK......", "......KCCK......", ".....KKCCKK.....", "....KKAAAAKK....", "...KKAAAAAAKK...", "...KAAAAAAAAK...", "..KKAKAAAAKAKK..", "..KAAAAAAAACCK..", "..KKAABNNBACCK..", "...KABBNBBBCCK..", "...KKBBBBBBKKK..", "....KBBBBBBK....", "....KKBBBBKK....", ".....KKKKKK.....", "................"],
+    ],
+  },
+  fish: {
+    palette: { ...SPRITE_BASE_PALETTE, A: "#ff8a3d", B: "#ffd9a8", C: "#ff5e3a" },
+    frames: [
+      ["................", "................", "................", "....KKKK........", "...KKCCKKKK.KKK.", "..KKAAACAAKKKCK.", "..KAAAAAAAAKCKK.", ".KKAAAABAAACCKK.", ".KAAEAAAAAACCCK.", ".KKBAAABAAACCKK.", "..KAAAAAAAAKCKK.", "..KKAAAAAAKKKCK.", "...KKKKKKKK.KKK.", "................", "................", "................"],
+      ["................", "................", "................", "....KKKK........", "...KKCCKKKK.KKK.", "..KKAAACAAKKKCK.", "..KAAAAAAAAKCKK.", ".KKAAAABAAACCKK.", ".KAAKAAAAAACCCK.", ".KKBAAABAAACCKK.", "..KAAAAAAAAKCKK.", "..KKAAAAAAKKKCK.", "...KKKKKKKK.KKK.", "................", "................", "................"],
+    ],
+  },
+  turtle: {
+    palette: { ...SPRITE_BASE_PALETTE, A: "#6fbf73", B: "#cfe8a8", C: "#3f8a48" },
+    frames: [
+      ["................", "................", "................", "................", "....KKKKKKKK....", "..KKKCCCCCCKKK..", "..KCCAACCAACCK..", "..KCAAAAAAAACK..", "..KCAAAAAAAACK..", "..KCACAAAACACK..", ".KKCCAACCAACCKK.", ".KBBKCCCCCCKBBK.", ".KBBKKKBBKKKBBK.", ".KKKKKEBBEKKKKK.", ".....KKBBKK.....", "......KKKK......"],
+      ["................", "................", "................", "................", "....KKKKKKKK....", "..KKKCCCCCCKKK..", "..KCCAACCAACCK..", "..KCAAAAAAAACK..", "..KCAAAAAAAACK..", "..KCACAAAACACK..", ".KKCCAACCAACCKK.", ".KBBKCCCCCCKBBK.", ".KBBKKKBBKKKBBK.", ".KKKK.KBBK.KKKK.", "......KBBK......", "......KKKK......"],
+    ],
+  },
+  fox: {
+    palette: { ...SPRITE_BASE_PALETTE, A: "#e8743b", B: "#fbe9d6", C: "#c4541f" },
+    frames: [
+      ["....KKK..KKK....", "..KKKAK..KAKKK..", "..KAAAK..KAAAK..", "..KAKAK..KAKAK..", "..KAAAKKKKAAAK..", "..KKKAAAAAAKKK..", "..KKAAAAAAAAKK..", "..KAAAAAAAAAAK..", "..KAAEAAAAEAAK..", "..KBAABBBBAABK..", "..KKABBBBBBAKK..", "...KKBBEEBBKK...", "....KBBBBBBK....", "....KKBBBBKK....", ".....KKKKKK.....", "................"],
+      ["....KKK..KKK....", "..KKKAK..KAKKK..", "..KAAAK..KAAAK..", "..KAKAK..KAKAK..", "..KAAAKKKKAAAK..", "..KKKAAAAAAKKK..", "..KKAAAAAAAAKK..", "..KAAAAAAAAAAK..", "..KAAKAAAAKAAK..", "..KBAABBBBAABK..", "..KKABBBBBBAKK..", "...KKBBKKBBKK...", "....KBBBBBBK....", "....KKBBBBKK....", ".....KKKKKK.....", "................"],
+    ],
+  },
+};
+
+// Encode a string to base64 in both browser (btoa) and Node/test (Buffer).
+const spriteBase64 = (str) => {
+  if (typeof btoa === "function") return btoa(str);
+  if (typeof Buffer !== "undefined") return Buffer.from(str, "binary").toString("base64");
+  return "";
+};
+
+// Convert a single pixel-grid frame + palette into a crisp base64 SVG data URL.
+const spriteFrameToDataUrl = (frame, palette) => {
+  const rows = frame.length;
+  const cols = frame[0].length;
+  let rects = "";
+  for (let y = 0; y < rows; y++) {
+    const row = frame[y];
+    for (let x = 0; x < cols; x++) {
+      const color = palette[row[x]];
+      if (!color) continue;
+      rects += `<rect x="${x}" y="${y}" width="1" height="1" fill="${color}"/>`;
+    }
+  }
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${cols}" height="${rows}" viewBox="0 0 ${cols} ${rows}" shape-rendering="crispEdges">${rects}</svg>`;
+  return `data:image/svg+xml;base64,${spriteBase64(svg)}`;
+};
+
+const _spriteUrlCache = {};
+
+// Return the memoized array of base64 sprite frame URLs for a breed.
+const getPetSpriteFrames = (breed) => {
+  const data = PET_SPRITES[breed] || PET_SPRITES.cat;
+  const key = PET_SPRITES[breed] ? breed : "cat";
+  if (!_spriteUrlCache[key]) {
+    _spriteUrlCache[key] = data.frames.map((f) => spriteFrameToDataUrl(f, data.palette));
+  }
+  return _spriteUrlCache[key];
+};
+
 const TUTORIAL_STEPS = [
   {
     id: "care",
@@ -1916,13 +2024,15 @@ function WelcomeScreen({ onStart }) {
                 <button
                   key={breedKey}
                   onClick={() => setSelectedBreed(breedKey)}
-                  className={`p-4 rounded-xl border-2 transition-all ${
+                  className={`group p-4 rounded-xl border-2 transition-all duration-300 ${
                     selectedBreed === breedKey
                       ? 'border-purple-400 bg-purple-500/20 shadow-lg shadow-purple-500/30 scale-105'
-                      : 'border-slate-700 bg-slate-900/50 hover:border-purple-500/50 hover:bg-slate-800/50'
+                      : 'border-slate-700 bg-slate-900/50 hover:border-purple-500/50 hover:bg-slate-800/50 hover:scale-105'
                   }`}
                 >
-                  <div className="text-5xl mb-2 animate-bounce-slow">{breed.emoji}</div>
+                  <div className="flex justify-center mb-2 transition-transform duration-300 group-hover:scale-110">
+                    <PetSprite breed={breedKey} size={48} />
+                  </div>
                   <div className="text-xs font-bold text-purple-200">{breed.name}</div>
                 </button>
               ))}
@@ -1984,8 +2094,8 @@ function WelcomeScreen({ onStart }) {
           <div className="mb-8 p-6 bg-gradient-to-br from-purple-900/20 to-cyan-900/20 rounded-xl border border-purple-500/20">
             <p className="text-sm text-purple-300 mb-3 text-center">Preview:</p>
             <div className="flex items-center justify-center gap-4">
-              <div className="text-7xl animate-bounce-slow filter drop-shadow-2xl">
-                {PET_BREEDS[selectedBreed].emoji}
+              <div className="animate-bounce-slow filter drop-shadow-2xl">
+                <PetSprite breed={selectedBreed} size={88} />
               </div>
               <div>
                 <div className="text-2xl font-bold text-white">
@@ -3769,7 +3879,7 @@ export default function PawStreet() {
               </button>
             ))}
           </div>
-          <div className="flex-1">
+          <div key={view} className="flex-1 animate-fade-in">
         {/* MARKET VIEW */}
         {view === "market" && (
           <div className="grid grid-cols-5 gap-4">
@@ -5718,6 +5828,48 @@ function WheelOfFortune({ onSpin }) {
 }
 
 // ============================================================================
+// PET SPRITE COMPONENT
+// ============================================================================
+// Renders a breed's pixel-art sprite and cycles its idle frames for a subtle
+// blink animation. Frames advance every `frameMs` (default 500ms). The blink
+// frame is shown briefly so eyes stay open most of the time.
+
+function PetSprite({ breed, size = 96, animate = true, frameMs = 500, className = "" }) {
+  const frames = getPetSpriteFrames(breed);
+  // Mostly-open sequence: blink only on the final tick of the cycle.
+  const sequence = frames.length > 1 ? [0, 0, 0, 0, 1] : [0];
+  const [step, setStep] = useState(0);
+
+  useEffect(() => {
+    if (!animate || frames.length <= 1) return undefined;
+    const id = setInterval(() => {
+      setStep((s) => (s + 1) % sequence.length);
+    }, frameMs);
+    return () => clearInterval(id);
+  }, [animate, frames.length, frameMs, sequence.length]);
+
+  const src = frames[animate ? sequence[step] : 0];
+
+  return (
+    <img
+      src={src}
+      alt={`${PET_BREEDS[breed]?.name || "Pet"} pixel sprite`}
+      width={size}
+      height={size}
+      draggable={false}
+      className={className}
+      style={{
+        width: size,
+        height: size,
+        imageRendering: "pixelated",
+        WebkitUserSelect: "none",
+        userSelect: "none",
+      }}
+    />
+  );
+}
+
+// ============================================================================
 // PET VISUAL COMPONENT
 // ============================================================================
 
@@ -5787,7 +5939,6 @@ function PetVisual({ pet }) {
   };
 
   const current = petGraphics[state];
-  const breedEmoji = PET_BREEDS[pet.breed]?.emoji || '🐾';
   const roomItemPositions = [
     { top: '8%', left: '10%' },
     { top: '12%', right: '12%' },
@@ -5837,13 +5988,13 @@ function PetVisual({ pet }) {
 
       {/* Pet body */}
       <div className="relative z-10 flex flex-col items-center gap-4">
-        {/* Animated Pet Emoji */}
+        {/* Animated pixelated pet sprite */}
         <div className="relative">
-          <div 
-            className="text-8xl animate-bounce-slow filter drop-shadow-2xl transition-transform duration-1000"
+          <div
+            className="animate-bounce-slow filter drop-shadow-2xl transition-transform duration-1000"
             style={{ transform: `scale(${pet.size || 1.0})` }}
           >
-            {breedEmoji}
+            <PetSprite breed={pet.breed} size={128} />
           </div>
         </div>
 
@@ -6191,20 +6342,21 @@ function NavButton({ active, onClick, children }) {
 }
 
 function StatBar({ label, value, color }) {
+  const pct = Math.max(0, Math.min(100, value));
+  const fill =
+    value > 70 ? "from-emerald-400 to-green-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]" :
+    value > 40 ? "from-amber-300 to-yellow-500 shadow-[0_0_10px_rgba(245,158,11,0.45)]" :
+    "from-rose-500 to-red-600 shadow-[0_0_10px_rgba(239,68,68,0.5)]";
   return (
     <div>
       <div className="flex items-center justify-between mb-1">
         <span className="text-sm">{label}</span>
-        <span className="text-sm font-bold">{Math.round(value)}</span>
+        <span className="text-sm font-bold tabular-nums">{Math.round(value)}</span>
       </div>
-      <div className="w-full bg-slate-800 rounded-full h-2">
+      <div className="w-full bg-slate-800/80 rounded-full h-2 overflow-hidden ring-1 ring-inset ring-white/5">
         <div
-          className={`h-2 rounded-full transition-all duration-500 ${
-            value > 70 ? "bg-green-500" :
-            value > 40 ? "bg-yellow-500" :
-            "bg-red-500"
-          }`}
-          style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
+          className={`h-2 rounded-full bg-gradient-to-r transition-all duration-500 ease-out ${fill}`}
+          style={{ width: `${pct}%` }}
         />
       </div>
     </div>
@@ -6215,17 +6367,17 @@ function StatMini({ label, value }) {
   return (
     <div className="flex justify-between items-center">
       <span className="text-slate-400">{label}:</span>
-      <div className="flex-1 mx-2 bg-slate-800 rounded-full h-1.5">
+      <div className="flex-1 mx-2 bg-slate-800/80 rounded-full h-1.5 overflow-hidden ring-1 ring-inset ring-white/5">
         <div
-          className={`h-1.5 rounded-full ${
-            value > 70 ? "bg-green-500" :
-            value > 40 ? "bg-yellow-500" :
-            "bg-red-500"
+          className={`h-1.5 rounded-full bg-gradient-to-r transition-all duration-500 ease-out ${
+            value > 70 ? "from-emerald-400 to-green-500" :
+            value > 40 ? "from-amber-300 to-yellow-500" :
+            "from-rose-500 to-red-600"
           }`}
           style={{ width: `${Math.max(0, Math.min(100, value))}%` }}
         />
       </div>
-      <span className="font-bold w-8 text-right">{Math.round(value)}</span>
+      <span className="font-bold w-8 text-right tabular-nums">{Math.round(value)}</span>
     </div>
   );
 }
@@ -6235,8 +6387,10 @@ function CareButton({ label, onClick, disabled }) {
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`w-full px-3 py-2 rounded text-sm transition ${
-        disabled ? "bg-slate-800 text-slate-500 cursor-not-allowed" : "bg-purple-600 hover:bg-purple-500"
+      className={`w-full px-3 py-2 rounded-lg text-sm font-semibold transition-all duration-200 ${
+        disabled
+          ? "bg-slate-800/70 text-slate-500 cursor-not-allowed ring-1 ring-inset ring-white/5"
+          : "bg-gradient-to-r from-purple-600 to-fuchsia-600 hover:from-purple-500 hover:to-fuchsia-500 text-white shadow-md hover:shadow-purple-500/40 hover:-translate-y-0.5 active:translate-y-0"
       }`}
     >
       {label}
@@ -6246,9 +6400,9 @@ function CareButton({ label, onClick, disabled }) {
 
 function MetricCard({ label, value, color }) {
   return (
-    <div className="bg-slate-900/60 rounded p-4 border border-slate-700">
+    <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700/60 shadow-inner shadow-black/20 transition-all duration-200 hover:border-slate-500/60 hover:-translate-y-0.5 hover:shadow-lg">
       <div className="text-xs text-slate-400 mb-1">{label}</div>
-      <div className={`text-2xl font-bold ${color}`}>{value}</div>
+      <div className={`text-2xl font-bold tabular-nums ${color}`}>{value}</div>
     </div>
   );
 }
