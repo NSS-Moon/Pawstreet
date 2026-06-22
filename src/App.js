@@ -649,6 +649,9 @@ const RESPONSIBILITY_LEVELS = [
   { level: 5, name: "Master Caretaker", minPoints: 360, description: "Exceptional stewardship" }
 ];
 
+const PET_EVOLUTION_LEVEL = 3;
+const PET_EVOLUTION_LEVEL_POINTS = RESPONSIBILITY_LEVELS.find(tier => tier.level === PET_EVOLUTION_LEVEL)?.minPoints || 140;
+
 const READINESS_REQUIREMENTS = [
   { id: "level", label: "Responsibility Level 4+", check: ({ level }) => level >= 4 },
   { id: "care", label: "80%+ average daily care completion", check: ({ avgCare }) => avgCare >= 0.8 },
@@ -761,6 +764,107 @@ const PET_SPRITES = {
   },
 };
 
+const PET_EVOLUTION_VARIANTS = {
+  guardian: {
+    label: "Guardian",
+    icon: "🛡️",
+    learnerType: "Care-first learner",
+    traderType: "Steady trader",
+    trait: "Steady Heart",
+    attribute: "steadyHeart",
+    description: "Grows from careful routines, trust, and values-led trading.",
+    dailyBonus: { trust: 1, stress: -2 },
+    palette: { A: "#5fcf7a", B: "#dcfce7", C: "#1f8a5b", G: "#bbf7d0", L: "#fef9c3" },
+    overlay: [
+      "................",
+      "..G..........G..",
+      ".GL..........LG.",
+      "..G..........G..",
+      "................",
+      "......LLLL......",
+      ".....L....L.....",
+      "....L......L....",
+      "....L......L....",
+      ".....L....L.....",
+      "......LLLL......",
+      "................",
+      "...GG......GG...",
+      "..GLL......LLG..",
+      "...GG......GG...",
+      "................"
+    ]
+  },
+  analyst: {
+    label: "Analyst",
+    icon: "📊",
+    learnerType: "Pattern learner",
+    traderType: "Balanced analyst",
+    trait: "Pattern Sense",
+    attribute: "patternSense",
+    description: "Grows from training, financial awareness, and balanced decisions.",
+    dailyBonus: { financialAwareness: 2, stress: -1 },
+    palette: { A: "#60a5fa", B: "#dbeafe", C: "#2563eb", D: "#0f172a", L: "#67e8f9" },
+    overlay: [
+      "................",
+      "............L...",
+      "...........LD...",
+      "...L......LD....",
+      "...DL....LD.....",
+      "....DLLLLD......",
+      "................",
+      "....DDD..DDD....",
+      "...D...DD...D...",
+      "....DDD..DDD....",
+      "................",
+      "..L.........L...",
+      "..DL.......LD...",
+      "..DDL.....LDD...",
+      "..DDDL...LDDD...",
+      "................"
+    ]
+  },
+  maverick: {
+    label: "Maverick",
+    icon: "⚡",
+    learnerType: "Challenge learner",
+    traderType: "Risk trader",
+    trait: "Spark Instinct",
+    attribute: "sparkInstinct",
+    description: "Grows from bold trades, active play, and comfort with volatility.",
+    dailyBonus: { happiness: 2, energy: 1 },
+    palette: { A: "#f97316", B: "#ffedd5", C: "#db2777", Y: "#fde047", R: "#fb7185" },
+    overlay: [
+      "......YYYY......",
+      "....Y.Y.Y.Y.....",
+      "....YYYYYYYY....",
+      "................",
+      "........Y.......",
+      ".......Y........",
+      "......Y.........",
+      ".....YYY........",
+      ".......Y........",
+      "......Y.........",
+      ".....Y..........",
+      "....Y...........",
+      "................",
+      ".Y............Y.",
+      "..Y..........Y..",
+      "................"
+    ]
+  }
+};
+
+const PET_EVOLUTION_NAMES = {
+  cat: { guardian: "Hearth Lynx", analyst: "Cipher Lynx", maverick: "Spark Lynx" },
+  dog: { guardian: "Trust Hound", analyst: "Ledger Hound", maverick: "Venture Hound" },
+  rabbit: { guardian: "Bloom Hare", analyst: "Tally Hare", maverick: "Sprint Hare" },
+  hamster: { guardian: "Nest Whisker", analyst: "Abacus Whisker", maverick: "Rocket Whisker" },
+  bird: { guardian: "Bloom Wing", analyst: "Signal Wing", maverick: "Sky Streak" },
+  fish: { guardian: "Glow Fin", analyst: "Ledger Fin", maverick: "Surge Fin" },
+  turtle: { guardian: "Guard Shell", analyst: "Atlas Shell", maverick: "Jet Shell" },
+  fox: { guardian: "Sage Fox", analyst: "Cipher Fox", maverick: "Spark Fox" }
+};
+
 // Encode a string to base64 in both browser (btoa) and Node/test (Buffer).
 const spriteBase64 = (str) => {
   if (typeof btoa === "function") return btoa(str);
@@ -785,12 +889,42 @@ const spriteFrameToDataUrl = (frame, palette) => {
   return `data:image/svg+xml;base64,${spriteBase64(svg)}`;
 };
 
+const mergeEvolutionOverlay = (frame, overlay) => {
+  if (!overlay) return frame;
+  return frame.map((row, y) => {
+    const pixels = row.split("");
+    const overlayRow = overlay[y] || "";
+    for (let x = 0; x < pixels.length; x++) {
+      const overlayPixel = overlayRow[x];
+      if (overlayPixel && overlayPixel !== ".") {
+        pixels[x] = overlayPixel;
+      }
+    }
+    return pixels.join("");
+  });
+};
+
+const getEvolutionSpriteData = (breed, evolutionPath) => {
+  const baseData = PET_SPRITES[breed] || PET_SPRITES.cat;
+  const variant = PET_EVOLUTION_VARIANTS[evolutionPath];
+  if (!variant) return baseData;
+
+  return {
+    palette: { ...baseData.palette, ...variant.palette },
+    frames: baseData.frames.map(frame => mergeEvolutionOverlay(frame, variant.overlay))
+  };
+};
+
 const _spriteUrlCache = {};
 
-// Return the memoized array of base64 sprite frame URLs for a breed.
-const getPetSpriteFrames = (breed) => {
-  const data = PET_SPRITES[breed] || PET_SPRITES.cat;
-  const key = PET_SPRITES[breed] ? breed : "cat";
+// Return the memoized array of base64 sprite frame URLs for a breed/evolution.
+const getPetSpriteFrames = (breed, evolutionPath = null) => {
+  const baseKey = PET_SPRITES[breed] ? breed : "cat";
+  const pathKey = PET_EVOLUTION_VARIANTS[evolutionPath] ? evolutionPath : "base";
+  const data = pathKey === "base"
+    ? PET_SPRITES[baseKey]
+    : getEvolutionSpriteData(baseKey, pathKey);
+  const key = `${baseKey}:${pathKey}`;
   if (!_spriteUrlCache[key]) {
     _spriteUrlCache[key] = data.frames.map((f) => spriteFrameToDataUrl(f, data.palette));
   }
@@ -863,7 +997,7 @@ const getHelpResponse = (message, gameState) => {
 
   if (text.includes("evolve") || text.includes("evolution")) {
     return {
-      text: "Evolutions unlock after the early days. Your pet's health, trust, stress, ethics score, and finances shape the evolution title you earn.",
+      text: "Each pet evolves once at Responsibility Level 3. Care habits and trading style choose Guardian, Analyst, or Maverick, unlocking a new pixel icon and reusable trait attribute.",
       viewAction: { label: "Open Pet", view: "pet" }
     };
   }
@@ -990,6 +1124,162 @@ const scaleStatDelta = (delta, multiplier) => {
     acc[key] = value * multiplier;
     return acc;
   }, {});
+};
+
+const getPortfolioValue = (state) => (state?.stocks || []).reduce((sum, stock) => (
+  sum + ((stock.owned || 0) * stock.price)
+), 0);
+
+const getAverageCareCompletion = (state) => {
+  const history = state?.dailyCompletionHistory || [];
+  if (history.length > 0) {
+    return history.reduce((sum, value) => sum + value, 0) / history.length;
+  }
+  return calculateDailyCompletion(state?.dailyTasks || createDailyTasksState());
+};
+
+const getPetEvolutionName = (breed, evolutionPath) => {
+  const breedNames = PET_EVOLUTION_NAMES[breed] || PET_EVOLUTION_NAMES.cat;
+  const variant = PET_EVOLUTION_VARIANTS[evolutionPath] || PET_EVOLUTION_VARIANTS.analyst;
+  return breedNames[evolutionPath] || `${variant.label} ${PET_BREEDS[breed]?.name || "Pet"}`;
+};
+
+const buildKidEvolutionProfile = (state, pet) => {
+  const portfolioValue = getPortfolioValue(state);
+  const ownedStocks = (state?.stocks || []).filter(stock => (stock.owned || 0) > 0);
+  const highVolatilityValue = ownedStocks
+    .filter(stock => stock.volatility >= 0.15)
+    .reduce((sum, stock) => sum + (stock.owned * stock.price), 0);
+  const ethicalValue = ownedStocks
+    .filter(stock => stock.ethicalRating >= 70)
+    .reduce((sum, stock) => sum + (stock.owned * stock.price), 0);
+  const highVolatilityPercent = portfolioValue > 0 ? highVolatilityValue / portfolioValue : 0;
+  const ethicalPercent = portfolioValue > 0 ? ethicalValue / portfolioValue : 0;
+  const avgCare = getAverageCareCompletion(state);
+  const skillsTrained = Object.values(pet.skills || {}).reduce((sum, level) => sum + level, 0);
+  const activityTotal = state?.dailyTaskTotals?.activity || 0;
+  const scores = { guardian: 0, analyst: 0, maverick: 0 };
+  const reasons = [];
+
+  if (avgCare >= 0.8 || pet.trust >= 70 || (state?.dailyCareStreak || 0) >= 3) {
+    scores.guardian += 2;
+    reasons.push("strong care habits");
+  }
+  if ((state?.ethicsScore || 0) >= 70 || ethicalPercent >= 0.4 || pet.personality === "ethical") {
+    scores.guardian += 2;
+    reasons.push("values-led choices");
+  }
+  if (skillsTrained >= 3 || pet.financialAwareness >= 65) {
+    scores.analyst += 2;
+    reasons.push("trained market awareness");
+  }
+  if (highVolatilityPercent > 0.15 && highVolatilityPercent < 0.45) {
+    scores.analyst += 1;
+    reasons.push("balanced portfolio risk");
+  }
+  if (highVolatilityPercent >= 0.45 || pet.personality === "adventurous" || pet.personality === "greedy") {
+    scores.maverick += 2;
+    reasons.push("bold trading style");
+  }
+  if (activityTotal >= 5 || (state?.minigamesWon || 0) >= 2) {
+    scores.maverick += 1;
+    reasons.push("challenge-driven practice");
+  }
+
+  const personalityPath = {
+    cautious: "guardian",
+    ethical: "guardian",
+    balanced: "analyst",
+    adventurous: "maverick",
+    greedy: "maverick"
+  }[pet.personality] || "analyst";
+  scores[personalityPath] += 1;
+
+  const bestScore = Math.max(...Object.values(scores));
+  const tiedPaths = Object.keys(scores).filter(path => scores[path] === bestScore);
+  const path = tiedPaths.includes(personalityPath) ? personalityPath : tiedPaths[0];
+
+  const learnerType = avgCare >= 0.8 || pet.trust >= 70
+    ? "Care-first learner"
+    : skillsTrained >= 3 || pet.financialAwareness >= 65
+    ? "Pattern learner"
+    : activityTotal >= 5 || (state?.minigamesWon || 0) >= 2
+    ? "Challenge learner"
+    : PET_EVOLUTION_VARIANTS[path].learnerType;
+
+  const traderType = pet.personality === "ethical" || ethicalPercent >= 0.4
+    ? "Values trader"
+    : pet.personality === "cautious" || highVolatilityPercent < 0.15
+    ? "Safety trader"
+    : pet.personality === "adventurous" || highVolatilityPercent >= 0.45
+    ? "Risk trader"
+    : pet.personality === "greedy"
+    ? "Profit trader"
+    : "Balanced trader";
+
+  return {
+    path,
+    learnerType,
+    traderType,
+    reason: reasons.slice(0, 2).join(" + ") || "balanced growth",
+    scores,
+    metrics: {
+      avgCare,
+      highVolatilityPercent,
+      ethicalPercent,
+      skillsTrained
+    }
+  };
+};
+
+const evolvePetAtLevel = (state, pet) => {
+  const levelInfo = getResponsibilityLevelInfo(state?.responsibilityPoints || 0);
+  if (pet.hasEvolved || levelInfo.level < PET_EVOLUTION_LEVEL) {
+    return { pet, evolved: false };
+  }
+
+  const profile = buildKidEvolutionProfile(state, pet);
+  const variant = PET_EVOLUTION_VARIANTS[profile.path] || PET_EVOLUTION_VARIANTS.analyst;
+  const evolutionName = getPetEvolutionName(pet.breed, profile.path);
+  const evolvedPet = {
+    ...pet,
+    hasEvolved: true,
+    evolutionStage: "evolved",
+    evolutionPath: profile.path,
+    evolutionName,
+    evolution: `${variant.icon} ${evolutionName}`,
+    evolutionTrait: variant.trait,
+    evolutionAttribute: variant.attribute,
+    evolutionBonus: variant.dailyBonus,
+    evolutionDescription: variant.description,
+    evolutionProfile: {
+      learnerType: profile.learnerType,
+      traderType: profile.traderType,
+      reason: profile.reason
+    },
+    evolutionSpriteKey: `${pet.breed}-${profile.path}`,
+    evolvedAtLevel: levelInfo.level,
+    evolvedAtDay: state?.day || 1
+  };
+
+  return { pet: evolvedPet, evolved: true, variant, profile, evolutionName };
+};
+
+const applyEvolutionDailyBonus = (pet) => {
+  if (!pet.hasEvolved) return;
+  const bonus = pet.evolutionBonus || PET_EVOLUTION_VARIANTS[pet.evolutionPath]?.dailyBonus;
+  applyStatDelta(pet, bonus);
+};
+
+const formatEvolutionBonus = (bonus) => {
+  if (!bonus) return "No passive bonus";
+  const labels = {
+    financialAwareness: "financial awareness"
+  };
+  return Object.entries(bonus).map(([key, value]) => {
+    const sign = value > 0 ? "+" : "";
+    return `${sign}${value} ${labels[key] || key}/day`;
+  }).join(", ");
 };
 
 const applyPetTickDecay = (pet) => {
@@ -1388,6 +1678,18 @@ const createPet = (name = "Luna", breed = "cat", personality = "balanced") => ({
   hunger: 0,
   financialAwareness: 50,
   evolution: "Newborn",
+  hasEvolved: false,
+  evolutionStage: "base",
+  evolutionPath: null,
+  evolutionName: null,
+  evolutionTrait: null,
+  evolutionAttribute: null,
+  evolutionBonus: null,
+  evolutionDescription: null,
+  evolutionProfile: null,
+  evolutionSpriteKey: null,
+  evolvedAtLevel: null,
+  evolvedAtDay: null,
   sickness: null,
   size: 1.0, // Feature #6: Visual growth (0.5 to 1.5)
   roomItems: [], // Feature #7: Owned room items
@@ -1919,51 +2221,20 @@ const updatePetMemory = (pet, action, quality, financialStability) => {
 };
 
 /**
- * Determines the pet's evolution title based on care, ethics, and finances.
- * Evolutions provide a narrative payoff for different play styles.
+ * Determines the pet's pre-evolution life stage.
+ * The Level 3 evolution system locks the true evolved form separately.
  *
  * @param {Object} pet - Current pet state
- * @param {number} portfolioValue - Total value of owned stocks
- * @param {number} cash - Cash on hand
- * @param {Array} stocks - Stock list for ethical analysis
- * @param {number} ethicsScore - Current ethics score
  * @param {number} day - Current game day
  * @returns {string} Evolution title (emoji + label)
  */
-const determineEvolution = (pet, portfolioValue, cash, stocks, ethicsScore, day) => {
-  // Early days use fixed titles so players learn the system first.
+const determineEvolution = (pet, day) => {
+  if (pet.hasEvolved) return pet.evolution;
+
+  // Early stages use fixed titles so players learn the system first.
   if (day < 7) return "Newborn";
   if (day < 14) return "Young";
-  
-  const totalWealth = portfolioValue + cash;
-  // Normalize stability to keep thresholds readable (1.0 = stable).
-  const financialStability = totalWealth / 1000;
-  const avgHealth = pet.health;
-  
-  const ethicalHoldings = stocks
-    .filter(s => s.ethicalRating > 70 && s.owned > 0)
-    .reduce((sum, s) => sum + (s.owned * s.price), 0);
-  const ethicalPercent = portfolioValue > 0 ? ethicalHoldings / portfolioValue : 0;
-  
-  // Evolution paths
-  // Thresholds are tuned for clarity: strong health + trust + ethics yields the top path.
-  if (avgHealth > 80 && pet.trust > 70 && ethicalPercent > 0.4) {
-    return "🌿 Ethical Guardian";
-  } else if (financialStability > 2 && pet.stress < 30) {
-    // High wealth + low stress produces independence
-    return "🤖 Independent Companion";
-  } else if (portfolioValue > 2000 && pet.stress > 60) {
-    // Wealth with stress signals luxury-but-pressured lifestyle
-    return "💎 Luxury Pet";
-  } else if (pet.stress > 70 || pet.memory.daysInStress > 10) {
-    // Consistent stress creates the anxious evolution
-    return "😰 Anxious Dependent";
-  } else if (avgHealth > 70 && financialStability > 1 && financialStability < 2) {
-    // Balanced middle path rewards steady play
-    return "🦴 Resilient Friend";
-  } else {
-    return "🐾 Developing";
-  }
+  return "🐾 Developing";
 };
 
 // ============================================================================
@@ -2144,7 +2415,8 @@ export default function PawStreet() {
   const [actionLog, setActionLog] = useState([]);
   const [selectedAssetId, setSelectedAssetId] = useState(null);
   const [marketCategory, setMarketCategory] = useState("stocks");
-  const [isSidebarExpanded, setIsSidebarExpanded] = useState(false);
+  const [isNavMenuOpen, setIsNavMenuOpen] = useState(false);
+  const navMenuRef = useRef(null);
   const [tradeAmount, setTradeAmount] = useState(1);
   const [autoTick, setAutoTick] = useState(true);
   const [tickInterval, setTickInterval] = useState(25); // Default 25 seconds
@@ -2168,6 +2440,17 @@ export default function PawStreet() {
   // Add log function - must be defined before use
   const addLog = (message, type = "info") => {
     setActionLog(prev => [...prev, { message, type, time: Date.now() }].slice(-20));
+  };
+
+  const applyEvolutionIfReady = (state, pet) => {
+    const result = evolvePetAtLevel(state, pet);
+    if (result.evolved) {
+      addLog(
+        `${result.variant.icon} ${pet.name} evolved into ${result.evolutionName}! Trait unlocked: ${result.variant.trait}.`,
+        "pet"
+      );
+    }
+    return result.pet;
   };
 
   /**
@@ -2236,6 +2519,19 @@ export default function PawStreet() {
     
     return () => clearInterval(interval);
   }, [autoDay, gameState, gameOver, isResting]);
+
+  useEffect(() => {
+    if (!isNavMenuOpen) return;
+
+    const handleClickOutside = (event) => {
+      if (navMenuRef.current && !navMenuRef.current.contains(event.target)) {
+        setIsNavMenuOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isNavMenuOpen]);
 
   // Check for game over conditions whenever the pet state changes.
   // Dependencies: gameState (pet stats), gameOver (avoid repeat triggers).
@@ -2934,6 +3230,7 @@ export default function PawStreet() {
 
     const financialStability = currentNetWorth / STARTING_CASH;
     newPet.memory = updatePetMemory(newPet, action, 70, financialStability);
+    newPet = applyEvolutionIfReady(newState, newPet);
     
     newState.pet = newPet;
     setGameState(newState);
@@ -2985,6 +3282,7 @@ export default function PawStreet() {
     
     const financialStability = currentNetWorth / STARTING_CASH;
     newPet.memory = updatePetMemory(newPet, 'play', success ? 90 : 60, financialStability);
+    newPet = applyEvolutionIfReady(newState, newPet);
     
     newState.pet = newPet;
     setGameState(newState);
@@ -3337,6 +3635,8 @@ export default function PawStreet() {
         }
       });
     }
+
+    applyEvolutionDailyBonus(newPet);
     
     // Apply training skill effects
     if (newPet.skills) {
@@ -3515,15 +3815,11 @@ export default function PawStreet() {
     // END NEW FEATURES
     // ========================================================================
     
-    // Update evolution
-    newPet.evolution = determineEvolution(
-      newPet, 
-      currentPortfolio, 
-      newState.cash, 
-      newState.stocks, 
-      newState.ethicsScore, 
-      newState.day
-    );
+    // Update or lock evolution
+    newPet = applyEvolutionIfReady(newState, newPet);
+    if (!newPet.hasEvolved) {
+      newPet.evolution = determineEvolution(newPet, newState.day);
+    }
     
     // Record history
     newState.history.push({
@@ -3536,7 +3832,10 @@ export default function PawStreet() {
       portfolioValue: currentPortfolio,
       netWorth: currentPortfolio + newState.cash,
       ethics: newState.ethicsScore,
-      financialAwareness: newPet.financialAwareness
+      financialAwareness: newPet.financialAwareness,
+      evolution: newPet.evolution,
+      evolutionPath: newPet.evolutionPath,
+      evolutionAttribute: newPet.evolutionAttribute
     });
     
     const programCheckpointReached = !newState.summaryShown && newState.day >= newState.gameLength;
@@ -3570,6 +3869,10 @@ export default function PawStreet() {
     snapshot.insurance = snapshot.insurance || { active: false, plan: "basic", daysCovered: 0, missedPayments: 0 };
     snapshot.gameLength = snapshot.gameLength || 90;
     snapshot.petTickCounter = snapshot.petTickCounter || 0;
+    snapshot.pet = applyEvolutionIfReady(snapshot, snapshot.pet);
+    if (!snapshot.pet.hasEvolved) {
+      snapshot.pet.evolution = determineEvolution(snapshot.pet, snapshot.day || 1);
+    }
     setGameState(snapshot);
     setSelectedTimeline(timeline);
     setView("market");
@@ -3601,7 +3904,21 @@ export default function PawStreet() {
     setHasSpunThisWeek(false);
     setShowFinalSummary(false);
     setSummarySnapshot(null);
+    setIsNavMenuOpen(false);
   };
+
+  const navigationItems = [
+    { key: 'market', label: 'Market', description: 'Trade stocks and read market news', icon: <TrendingUp size={18} /> },
+    { key: 'portfolio', label: 'Portfolio', description: 'View holdings and transaction history', icon: <Briefcase size={18} /> },
+    { key: 'pet', label: 'Pet', description: 'Feed, play, and care for your pet', icon: <Heart size={18} /> },
+    { key: 'tutorial', label: 'Tutorial', description: 'Learn the basics of PAWSTREET', icon: <Play size={18} /> },
+    { key: 'help', label: 'Help', description: 'Get guidance and gameplay tips', icon: <Brain size={18} /> },
+    { key: 'badges', label: 'Badges', description: 'Track achievements and rewards', icon: <BadgeIcon size={18} /> },
+    { key: 'analytics', label: 'Analytics', description: 'Charts and performance metrics', icon: <BarChartIcon size={18} /> },
+    { key: 'timelines', label: `Timelines (${timelines.length})`, description: 'Save and compare playthroughs', icon: <Clock size={18} /> }
+  ];
+
+  const activeNavItem = navigationItems.find(item => item.key === view) || navigationItems[0];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-blue-950 to-slate-950 text-white" style={{ fontFamily: "'Space Mono', monospace" }}>
@@ -3791,13 +4108,63 @@ export default function PawStreet() {
         <div className="max-w-[1600px] mx-auto">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <button
-                onClick={() => setIsSidebarExpanded(prev => !prev)}
-                className="bg-slate-900/70 border border-cyan-500/30 rounded-lg p-2 text-cyan-200 hover:text-cyan-100 hover:border-cyan-400 transition"
-                aria-label="Toggle menu"
-              >
-                <Menu size={18} />
-              </button>
+              <div className="relative" ref={navMenuRef}>
+                <button
+                  onClick={() => setIsNavMenuOpen(prev => !prev)}
+                  className={`bg-slate-900/70 border rounded-lg p-2 transition ${
+                    isNavMenuOpen
+                      ? 'border-cyan-400 text-cyan-100 shadow-md shadow-cyan-500/20'
+                      : 'border-cyan-500/30 text-cyan-200 hover:text-cyan-100 hover:border-cyan-400'
+                  }`}
+                  aria-label="Open navigation menu"
+                  aria-expanded={isNavMenuOpen}
+                >
+                  <Menu size={18} />
+                </button>
+
+                {isNavMenuOpen && (
+                  <div className="absolute top-full left-0 mt-2 w-72 bg-slate-950/95 backdrop-blur-md border border-cyan-500/40 rounded-xl shadow-2xl shadow-cyan-500/10 overflow-hidden z-[60]">
+                    <div className="px-4 py-3 border-b border-cyan-500/20 bg-black/30">
+                      <div className="text-[11px] font-bold uppercase tracking-[0.18em] text-cyan-400/70">
+                        Navigation
+                      </div>
+                      <div className="text-sm font-bold text-cyan-100 mt-1">
+                        {activeNavItem.label}
+                      </div>
+                      <div className="text-xs text-slate-400 mt-0.5">
+                        {activeNavItem.description}
+                      </div>
+                    </div>
+
+                    <div className="p-2 flex flex-col gap-1 max-h-[70vh] overflow-y-auto">
+                      {navigationItems.map(item => (
+                        <button
+                          key={item.key}
+                          onClick={() => {
+                            setView(item.key);
+                            setIsNavMenuOpen(false);
+                          }}
+                          className={`w-full flex items-start gap-3 px-3 py-2.5 rounded-lg text-left transition ${
+                            view === item.key
+                              ? 'bg-cyan-600 text-white shadow-md shadow-cyan-500/30'
+                              : 'bg-slate-900/40 text-slate-300 hover:bg-slate-800/70 hover:text-white'
+                          }`}
+                        >
+                          <span className="mt-0.5 flex items-center justify-center shrink-0">{item.icon}</span>
+                          <span className="min-w-0">
+                            <span className="block text-sm font-bold whitespace-nowrap">{item.label}</span>
+                            <span className={`block text-xs mt-0.5 ${
+                              view === item.key ? 'text-cyan-100/80' : 'text-slate-500'
+                            }`}>
+                              {item.description}
+                            </span>
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
               <div>
                 <h1 className="text-3xl font-bold bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
                   PAWSTREET
@@ -3848,38 +4215,7 @@ export default function PawStreet() {
           ''
         }`}
       >
-        <div className="flex gap-4">
-          <div
-            className={`shrink-0 bg-black/40 backdrop-blur border border-cyan-500/30 rounded-lg p-2 flex flex-col gap-2 transition-all ${
-              isSidebarExpanded ? 'w-48' : 'w-16'
-            }`}
-          >
-            {[
-              { key: 'market', label: 'Market', icon: <TrendingUp size={18} /> },
-              { key: 'portfolio', label: 'Portfolio', icon: <Briefcase size={18} /> },
-              { key: 'pet', label: 'Pet', icon: <Heart size={18} /> },
-              { key: 'tutorial', label: 'Tutorial', icon: <Play size={18} /> },
-              { key: 'help', label: 'Help', icon: <Brain size={18} /> },
-              { key: 'badges', label: 'Badges', icon: <BadgeIcon size={18} /> },
-              { key: 'analytics', label: 'Analytics', icon: <BarChartIcon size={18} /> },
-              { key: 'timelines', label: `Timelines (${timelines.length})`, icon: <Clock size={18} /> }
-            ].map(item => (
-              <button
-                key={item.key}
-                onClick={() => setView(item.key)}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-bold transition ${
-                  view === item.key
-                    ? 'bg-cyan-600 text-white shadow-md shadow-cyan-500/30'
-                    : 'bg-slate-900/50 text-slate-300 hover:bg-slate-800/60'
-                }`}
-                title={!isSidebarExpanded ? item.label : undefined}
-              >
-                <span className="flex items-center justify-center">{item.icon}</span>
-                {isSidebarExpanded && <span className="whitespace-nowrap">{item.label}</span>}
-              </button>
-            ))}
-          </div>
-          <div key={view} className="flex-1 animate-fade-in">
+        <div key={view} className="animate-fade-in">
         {/* MARKET VIEW */}
         {view === "market" && (
           <div className="grid grid-cols-5 gap-4">
@@ -4298,6 +4634,11 @@ export default function PawStreet() {
                 
                 <div className="mt-3 pt-3 border-t border-purple-500/30 text-xs text-center">
                   <div className="text-purple-400">{gameState.pet.evolution}</div>
+                  {gameState.pet.hasEvolved && (
+                    <div className="text-[10px] text-emerald-300 mt-1">
+                      {gameState.pet.evolutionTrait} | {gameState.pet.evolutionAttribute}
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -4512,6 +4853,40 @@ export default function PawStreet() {
                   <StatBar label="Stress" value={100 - gameState.pet.stress} color="text-green-400" />
                   <StatBar label="Hunger" value={100 - gameState.pet.hunger} color="text-orange-400" />
                   <StatBar label="Financial Awareness" value={gameState.pet.financialAwareness} color="text-purple-400" />
+                </div>
+
+                <div className="mt-4 p-4 bg-purple-950/30 border border-purple-500/30 rounded-lg">
+                  {gameState.pet.hasEvolved ? (
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center justify-between gap-3">
+                        <div>
+                          <div className="text-xs uppercase tracking-wide text-purple-300">Evolution Trait</div>
+                          <div className="text-lg font-bold text-white">{gameState.pet.evolutionTrait}</div>
+                        </div>
+                        <div className="text-right text-xs text-purple-200">
+                          <div>{gameState.pet.evolutionProfile?.learnerType}</div>
+                          <div>{gameState.pet.evolutionProfile?.traderType}</div>
+                        </div>
+                      </div>
+                      <div className="text-xs text-slate-300">{gameState.pet.evolutionDescription}</div>
+                      <div className="text-xs text-emerald-300">
+                        Attribute: {gameState.pet.evolutionAttribute} | Bonus: {formatEvolutionBonus(gameState.pet.evolutionBonus)}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="text-sm">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-bold text-purple-200">Evolution unlocks at Responsibility Lv {PET_EVOLUTION_LEVEL}</span>
+                        <span className="text-xs text-purple-300">{Math.min(gameState.responsibilityPoints || 0, PET_EVOLUTION_LEVEL_POINTS)}/{PET_EVOLUTION_LEVEL_POINTS} pts</span>
+                      </div>
+                      <div className="w-full bg-slate-800 rounded-full h-2">
+                        <div
+                          className="h-2 rounded-full bg-purple-400 transition-all"
+                          style={{ width: `${Math.min(100, ((gameState.responsibilityPoints || 0) / PET_EVOLUTION_LEVEL_POINTS) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
 
                 {/* Sickness Alert */}
@@ -5327,7 +5702,6 @@ export default function PawStreet() {
             </div>
           </div>
         )}
-          </div>
         </div>
       </div>
 
@@ -5834,8 +6208,8 @@ function WheelOfFortune({ onSpin }) {
 // blink animation. Frames advance every `frameMs` (default 500ms). The blink
 // frame is shown briefly so eyes stay open most of the time.
 
-function PetSprite({ breed, size = 96, animate = true, frameMs = 500, className = "" }) {
-  const frames = getPetSpriteFrames(breed);
+function PetSprite({ breed, evolutionPath = null, size = 96, animate = true, frameMs = 500, className = "" }) {
+  const frames = getPetSpriteFrames(breed, evolutionPath);
   // Mostly-open sequence: blink only on the final tick of the cycle.
   const sequence = frames.length > 1 ? [0, 0, 0, 0, 1] : [0];
   const [step, setStep] = useState(0);
@@ -5853,7 +6227,7 @@ function PetSprite({ breed, size = 96, animate = true, frameMs = 500, className 
   return (
     <img
       src={src}
-      alt={`${PET_BREEDS[breed]?.name || "Pet"} pixel sprite`}
+      alt={`${PET_BREEDS[breed]?.name || "Pet"}${evolutionPath ? ` ${PET_EVOLUTION_VARIANTS[evolutionPath]?.label || "evolved"}` : ""} pixel sprite`}
       width={size}
       height={size}
       draggable={false}
@@ -5994,7 +6368,7 @@ function PetVisual({ pet }) {
             className="animate-bounce-slow filter drop-shadow-2xl transition-transform duration-1000"
             style={{ transform: `scale(${pet.size || 1.0})` }}
           >
-            <PetSprite breed={pet.breed} size={128} />
+            <PetSprite breed={pet.breed} evolutionPath={pet.evolutionPath} size={128} />
           </div>
         </div>
 
