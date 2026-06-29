@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, Area, AreaChart } from 'recharts';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, BarChart, Bar, Area, AreaChart, PieChart, Pie, Cell } from 'recharts';
 
 // ============================================================================
 // ICON COMPONENTS (replacing lucide-react to avoid version conflicts)
@@ -7,18 +7,21 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, Responsi
 // Inline SVG icons are used to keep the build self-contained for competition
 // judging (no external icon package dependency) and to reduce deployment risk.
 
+// Heart SVG icon component
 const Heart = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path>
   </svg>
 );
 
+// Zap SVG icon component
 const Zap = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
   </svg>
 );
 
+// Brain SVG icon component
 const Brain = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M9.5 2A2.5 2.5 0 0 1 12 4.5v15a2.5 2.5 0 0 1-4.96.44 2.5 2.5 0 0 1-2.96-3.08 3 3 0 0 1-.34-5.58 2.5 2.5 0 0 1 1.32-4.24 2.5 2.5 0 0 1 1.98-3A2.5 2.5 0 0 1 9.5 2Z"></path>
@@ -26,6 +29,7 @@ const Brain = ({ size = 24 }) => (
   </svg>
 );
 
+// DollarSign SVG icon component
 const DollarSign = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <line x1="12" y1="1" x2="12" y2="23"></line>
@@ -33,6 +37,7 @@ const DollarSign = ({ size = 24 }) => (
   </svg>
 );
 
+// TrendingUp SVG icon component
 const TrendingUp = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline>
@@ -40,6 +45,7 @@ const TrendingUp = ({ size = 24 }) => (
   </svg>
 );
 
+// TrendingDown SVG icon component
 const TrendingDown = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline>
@@ -47,6 +53,7 @@ const TrendingDown = ({ size = 24 }) => (
   </svg>
 );
 
+// Clock SVG icon component
 const Clock = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <circle cx="12" cy="12" r="10"></circle>
@@ -54,6 +61,7 @@ const Clock = ({ size = 24 }) => (
   </svg>
 );
 
+// AlertTriangle SVG icon component
 const AlertTriangle = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
@@ -62,6 +70,7 @@ const AlertTriangle = ({ size = 24 }) => (
   </svg>
 );
 
+// RotateCcw SVG icon component
 const RotateCcw = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <polyline points="1 4 1 10 7 10"></polyline>
@@ -69,6 +78,7 @@ const RotateCcw = ({ size = 24 }) => (
   </svg>
 );
 
+// Save SVG icon component
 const Save = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
@@ -77,12 +87,14 @@ const Save = ({ size = 24 }) => (
   </svg>
 );
 
+// Play SVG icon component
 const Play = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <polygon points="5 3 19 12 5 21 5 3"></polygon>
   </svg>
 );
 
+// Briefcase SVG icon component
 const Briefcase = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect>
@@ -90,12 +102,14 @@ const Briefcase = ({ size = 24 }) => (
   </svg>
 );
 
+// ChevronRight SVG icon component
 const ChevronRight = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <polyline points="9 18 15 12 9 6"></polyline>
   </svg>
 );
 
+// BarChartIcon SVG icon component
 const BarChartIcon = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <line x1="4" y1="20" x2="20" y2="20"></line>
@@ -105,6 +119,7 @@ const BarChartIcon = ({ size = 24 }) => (
   </svg>
 );
 
+// BadgeIcon SVG icon component
 const BadgeIcon = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
     <circle cx="12" cy="8" r="4"></circle>
@@ -112,6 +127,7 @@ const BadgeIcon = ({ size = 24 }) => (
   </svg>
 );
 
+// Menu SVG icon component
 const Menu = ({ size = 24 }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
     <line x1="3" y1="6" x2="21" y2="6"></line>
@@ -279,6 +295,11 @@ const WHEEL_EVENTS = [
   }
 ];
 
+/**
+ * Randomly picks an event from the wheel.
+ *
+ * @returns {Object} Random wheel event object
+ */
 const spinWheel = () => {
   return WHEEL_EVENTS[Math.floor(Math.random() * WHEEL_EVENTS.length)];
 };
@@ -661,16 +682,18 @@ const READINESS_REQUIREMENTS = [
 ];
 
 // ============================================================================
-// BADGES (Boy Scout-style milestones)
+// BADGES (Boy Scout-style milestones) & PET EVOLUTION
 // ============================================================================
 // Badges replace achievements and emphasize responsibility + partnership.
+// The evolution system (Level 3+) transforms the pet into a specialized
+// variant based on how the player balanced care, trading, and finances.
 // Structure: { id, name, description, emoji, checkCondition, reward }.
 
 const BADGES = [
   { id: "routine_streak", name: "Routine Ranger", description: "Complete all daily tasks for 5 days", emoji: "🏅", checkCondition: (gs) => (gs.dailyCareStreak || 0) >= 5, reward: { cash: 200 } },
   { id: "trusted_partner", name: "Trusted Partner", description: "Reach 90 Trust", emoji: "🤝", checkCondition: (gs) => gs.pet.trust >= 90, reward: { cash: 150 } },
   { id: "health_guardian", name: "Health Guardian", description: "Keep health 90+ for 7 days", emoji: "🩺", checkCondition: (gs) => gs.history.slice(-7).every(h => h && h.health >= 90), reward: { item: "bed" } },
-  { id: "steady_walker", name: "Trail Scout", description: "Complete 30 walks", emoji: "🥾", checkCondition: (gs) => (gs.dailyTaskTotals?.walk || 0) >= 30, reward: { cash: 120 } },
+  { id: "steady_walker", name: "Trail Scout", description: "Complete 30 outings", emoji: "🥾", checkCondition: (gs) => (gs.dailyTaskTotals?.walk || 0) >= 30, reward: { cash: 120 } },
   { id: "insured", name: "Safety First", description: "Maintain insurance for 14 days", emoji: "🛡️", checkCondition: (gs) => (gs.insurance?.daysCovered || 0) >= 14, reward: { cash: 180 } },
   { id: "ethical_mentor", name: "Ethical Mentor", description: "Reach 80+ ethics score", emoji: "🌱", checkCondition: (gs) => gs.ethicsScore >= 80, reward: { cash: 200 } },
   { id: "financial_planner", name: "Budget Boss", description: "$5,000 net worth", emoji: "💼", checkCondition: (gs) => (gs.stocks.reduce((sum, s) => sum + (s.owned * s.price), 0) + gs.cash) >= 5000, reward: { cash: 300 } }
@@ -690,6 +713,39 @@ const PET_BREEDS = {
   fish: { emoji: "🐠", name: "Fish" },
   turtle: { emoji: "🐢", name: "Turtle" },
   fox: { emoji: "🦊", name: "Fox" }
+};
+
+// ============================================================================
+// BREED-SPECIFIC ACTIVITIES
+// ============================================================================
+// Maps each breed to a walk-alternative so the daily task label and emoji
+// match the pet type.  Fallback is the generic dog-style walk.
+// ============================================================================
+
+const BREED_ACTIVITIES = {
+  dog: { emoji: "🦮", label: "Walk" },
+  cat: { emoji: "🐈", label: "Stroll" },
+  rabbit: { emoji: "🐇", label: "Hop" },
+  hamster: { emoji: "🐹", label: "Explore" },
+  bird: { emoji: "🦜", label: "Fly" },
+  fish: { emoji: "🐟", label: "Swim" },
+  turtle: { emoji: "🐢", label: "Waddle" },
+  fox: { emoji: "🦊", label: "Roam" }
+};
+
+/**
+ * Returns the breed-specific icon and label for a task.
+ *
+ * @param {Object} task - Task config object
+ * @param {string} breed - Pet breed key
+ * @returns {{icon: string, label: string}} Display icon and label
+ */
+const getTaskDisplay = (task, breed) => {
+  if (task.id === "walk") {
+    const act = BREED_ACTIVITIES[breed] || { emoji: "🦮", label: "Walk" };
+    return { icon: act.emoji, label: act.label };
+  }
+  return { icon: task.icon, label: task.label };
 };
 
 // ============================================================================
@@ -865,14 +921,25 @@ const PET_EVOLUTION_NAMES = {
   fox: { guardian: "Sage Fox", analyst: "Cipher Fox", maverick: "Spark Fox" }
 };
 
-// Encode a string to base64 in both browser (btoa) and Node/test (Buffer).
+/**
+ * Encodes a string to base64 in browser or Node.
+ *
+ * @param {string} str - String to encode
+ * @returns {string} Base64-encoded string
+ */
 const spriteBase64 = (str) => {
   if (typeof btoa === "function") return btoa(str);
   if (typeof Buffer !== "undefined") return Buffer.from(str, "binary").toString("base64");
   return "";
 };
 
-// Convert a single pixel-grid frame + palette into a crisp base64 SVG data URL.
+/**
+ * Converts a pixel-grid frame and palette into a base64 SVG data URL.
+ *
+ * @param {Array<string>} frame - Array of pixel rows
+ * @param {Object} palette - Color mapping for pixel codes
+ * @returns {string} Data URL for the sprite frame
+ */
 const spriteFrameToDataUrl = (frame, palette) => {
   const rows = frame.length;
   const cols = frame[0].length;
@@ -889,6 +956,13 @@ const spriteFrameToDataUrl = (frame, palette) => {
   return `data:image/svg+xml;base64,${spriteBase64(svg)}`;
 };
 
+/**
+ * Merges an evolution overlay onto a sprite frame.
+ *
+ * @param {Array<string>} frame - Base sprite frame rows
+ * @param {Array<string>} overlay - Overlay pixel rows
+ * @returns {Array<string>} Merged frame rows
+ */
 const mergeEvolutionOverlay = (frame, overlay) => {
   if (!overlay) return frame;
   return frame.map((row, y) => {
@@ -904,6 +978,13 @@ const mergeEvolutionOverlay = (frame, overlay) => {
   });
 };
 
+/**
+ * Gets the sprite data for an evolved pet with merged palette and overlay.
+ *
+ * @param {string} breed - Pet breed key
+ * @param {string} evolutionPath - Evolution variant key
+ * @returns {Object} Sprite data with palette and frames
+ */
 const getEvolutionSpriteData = (breed, evolutionPath) => {
   const baseData = PET_SPRITES[breed] || PET_SPRITES.cat;
   const variant = PET_EVOLUTION_VARIANTS[evolutionPath];
@@ -917,7 +998,13 @@ const getEvolutionSpriteData = (breed, evolutionPath) => {
 
 const _spriteUrlCache = {};
 
-// Return the memoized array of base64 sprite frame URLs for a breed/evolution.
+/**
+ * Returns the memoized base64 sprite frame URLs for a breed and optional evolution.
+ *
+ * @param {string} breed - Pet breed key
+ * @param {string|null} evolutionPath - Evolution variant key or null
+ * @returns {Array<string>} Array of sprite data URLs
+ */
 const getPetSpriteFrames = (breed, evolutionPath = null) => {
   const baseKey = PET_SPRITES[breed] ? breed : "cat";
   const pathKey = PET_EVOLUTION_VARIANTS[evolutionPath] ? evolutionPath : "base";
@@ -960,9 +1047,12 @@ const TUTORIAL_STEPS = [
     id: "timeline",
     title: "Save a timeline",
     description: "Capture a checkpoint so you can compare multiple runs later.",
-    action: { label: "Open Timelines", view: "timelines" },
-    progress: ({ timelines }) => `Timelines saved: ${timelines.length}`,
-    check: ({ timelines }) => timelines.length > 0
+    action: { label: "Open Timelines", view: "timelines" }
+  },
+  {
+    id: "guide",
+    title: "Full Game Guide",
+    description: "Read through the complete game guide to learn about all features — pet care, trading, evolution, badges, and more."
   }
 ];
 
@@ -974,6 +1064,13 @@ const HELP_QUICK_PROMPTS = [
   "How do I save a timeline?"
 ];
 
+/**
+ * Generates a chatbot response for the help system.
+ *
+ * @param {string} message - User's message
+ * @param {Object} gameState - Current game state for context
+ * @returns {{text: string, viewAction?: {label: string, view: string}}} Response object
+ */
 const getHelpResponse = (message, gameState) => {
   const text = message.toLowerCase();
 
@@ -1063,6 +1160,11 @@ const getHelpResponse = (message, gameState) => {
   };
 };
 
+/**
+ * Creates the initial welcome messages for the help chat.
+ *
+ * @returns {Array} Array of welcome message objects
+ */
 const createHelpWelcomeMessages = () => ([
   {
     id: `${Date.now()}-welcome`,
@@ -1071,21 +1173,42 @@ const createHelpWelcomeMessages = () => ([
   }
 ]);
 
+/**
+ * Creates the initial daily tasks state with all tasks set to 0.
+ *
+ * @returns {Object} Daily tasks state
+ */
 const createDailyTasksState = () => DAY_TASKS.reduce((acc, task) => {
   acc[task.id] = 0;
   return acc;
 }, {});
 
+/**
+ * Creates the initial daily task cooldowns with all tasks set to 0.
+ *
+ * @returns {Object} Daily task cooldowns
+ */
 const createDailyTaskCooldowns = () => DAY_TASKS.reduce((acc, task) => {
   acc[task.id] = 0;
   return acc;
 }, {});
 
+/**
+ * Creates the initial daily task totals with all tasks set to 0.
+ *
+ * @returns {Object} Daily task totals
+ */
 const createDailyTaskTotals = () => DAY_TASKS.reduce((acc, task) => {
   acc[task.id] = 0;
   return acc;
 }, {});
 
+/**
+ * Calculates the percentage of daily tasks completed.
+ *
+ * @param {Object} dailyTasks - Current daily task counts
+ * @returns {number} Completion fraction (0-1)
+ */
 const calculateDailyCompletion = (dailyTasks) => {
   if (!dailyTasks) return 0;
   const total = DAY_TASKS.reduce((sum, task) => {
@@ -1095,6 +1218,12 @@ const calculateDailyCompletion = (dailyTasks) => {
   return total / DAY_TASKS.length;
 };
 
+/**
+ * Gets the responsibility level info for a given point total.
+ *
+ * @param {number} points - Current responsibility points
+ * @returns {{level: number, name: string, minPoints: number, description: string, nextLevelPoints: number|null}} Level info
+ */
 const getResponsibilityLevelInfo = (points) => {
   const level = RESPONSIBILITY_LEVELS
     .slice()
@@ -1107,6 +1236,12 @@ const getResponsibilityLevelInfo = (points) => {
   };
 };
 
+/**
+ * Applies a stat delta modifier to the pet, clamping values to 0-100.
+ *
+ * @param {Object} pet - Pet state object (mutated in place)
+ * @param {Object} delta - Stat changes to apply
+ */
 const applyStatDelta = (pet, delta) => {
   if (!delta) return;
   const clamp = (value) => Math.max(0, Math.min(100, value));
@@ -1118,6 +1253,13 @@ const applyStatDelta = (pet, delta) => {
   if (delta.hunger) pet.hunger = clamp(pet.hunger + delta.hunger);
 };
 
+/**
+ * Scales a stat delta object by a multiplier.
+ *
+ * @param {Object} delta - Stat delta to scale
+ * @param {number} multiplier - Scale factor
+ * @returns {Object|null} Scaled delta or null
+ */
 const scaleStatDelta = (delta, multiplier) => {
   if (!delta || multiplier <= 0) return null;
   return Object.entries(delta).reduce((acc, [key, value]) => {
@@ -1126,10 +1268,22 @@ const scaleStatDelta = (delta, multiplier) => {
   }, {});
 };
 
+/**
+ * Calculates the total portfolio value from stock holdings.
+ *
+ * @param {Object} state - Game state with stocks array
+ * @returns {number} Total portfolio value
+ */
 const getPortfolioValue = (state) => (state?.stocks || []).reduce((sum, stock) => (
   sum + ((stock.owned || 0) * stock.price)
 ), 0);
 
+/**
+ * Calculates the average care completion across all days.
+ *
+ * @param {Object} state - Game state with dailyCompletionHistory
+ * @returns {number} Average completion fraction (0-1)
+ */
 const getAverageCareCompletion = (state) => {
   const history = state?.dailyCompletionHistory || [];
   if (history.length > 0) {
@@ -1138,12 +1292,26 @@ const getAverageCareCompletion = (state) => {
   return calculateDailyCompletion(state?.dailyTasks || createDailyTasksState());
 };
 
+/**
+ * Gets the evolution display name for a breed and path.
+ *
+ * @param {string} breed - Pet breed key
+ * @param {string} evolutionPath - Evolution variant key
+ * @returns {string} Evolution name
+ */
 const getPetEvolutionName = (breed, evolutionPath) => {
   const breedNames = PET_EVOLUTION_NAMES[breed] || PET_EVOLUTION_NAMES.cat;
   const variant = PET_EVOLUTION_VARIANTS[evolutionPath] || PET_EVOLUTION_VARIANTS.analyst;
   return breedNames[evolutionPath] || `${variant.label} ${PET_BREEDS[breed]?.name || "Pet"}`;
 };
 
+/**
+ * Builds an evolution profile based on the player's care, trading, and activity habits.
+ *
+ * @param {Object} state - Game state
+ * @param {Object} pet - Pet state
+ * @returns {{path: string, learnerType: string, traderType: string, reason: string, scores: Object, metrics: Object}} Evolution profile
+ */
 const buildKidEvolutionProfile = (state, pet) => {
   const portfolioValue = getPortfolioValue(state);
   const ownedStocks = (state?.stocks || []).filter(stock => (stock.owned || 0) > 0);
@@ -1232,6 +1400,13 @@ const buildKidEvolutionProfile = (state, pet) => {
   };
 };
 
+/**
+ * Handles pet evolution when responsibility level 3 is reached.
+ *
+ * @param {Object} state - Game state
+ * @param {Object} pet - Pet state
+ * @returns {{pet: Object, evolved: boolean, variant?: Object, profile?: Object, evolutionName?: string}} Evolution result
+ */
 const evolvePetAtLevel = (state, pet) => {
   const levelInfo = getResponsibilityLevelInfo(state?.responsibilityPoints || 0);
   if (pet.hasEvolved || levelInfo.level < PET_EVOLUTION_LEVEL) {
@@ -1265,12 +1440,23 @@ const evolvePetAtLevel = (state, pet) => {
   return { pet: evolvedPet, evolved: true, variant, profile, evolutionName };
 };
 
+/**
+ * Applies the evolution daily passive bonus to the pet.
+ *
+ * @param {Object} pet - Pet state (mutated in place)
+ */
 const applyEvolutionDailyBonus = (pet) => {
   if (!pet.hasEvolved) return;
   const bonus = pet.evolutionBonus || PET_EVOLUTION_VARIANTS[pet.evolutionPath]?.dailyBonus;
   applyStatDelta(pet, bonus);
 };
 
+/**
+ * Formats an evolution bonus object into a display string.
+ *
+ * @param {Object} bonus - Evolution bonus stat deltas
+ * @returns {string} Formatted bonus description
+ */
 const formatEvolutionBonus = (bonus) => {
   if (!bonus) return "No passive bonus";
   const labels = {
@@ -1282,16 +1468,54 @@ const formatEvolutionBonus = (bonus) => {
   }).join(", ");
 };
 
+/**
+ * Records a pet spending entry in the state's spending log.
+ *
+ * @param {Object} state - Game state (mutated in place)
+ * @param {string} category - Spending category
+ * @param {string} label - Display label
+ * @param {number} cost - Amount spent
+ */
+const recordPetSpending = (state, category, label, cost) => {
+  if (!state.petSpending) state.petSpending = [];
+  state.petSpending.push({ day: state.day, category, label, cost: parseFloat(cost.toFixed(2)) });
+};
+
+/**
+ * Applies periodic tick decay to the pet's stats.
+ *
+ * @param {Object} pet - Pet state
+ * @returns {Object} Updated pet state with decay applied
+ */
 const applyPetTickDecay = (pet) => {
   const updated = { ...pet };
   applyStatDelta(updated, PET_TICK_DECAY);
   return updated;
 };
 
+/**
+ * Gets the task config for a given task ID.
+ *
+ * @param {string} taskId - Task identifier
+ * @returns {Object|undefined} Task config object
+ */
 const getDailyTaskConfig = (taskId) => DAY_TASKS.find(task => task.id === taskId);
 
+/**
+ * Maps a care item to its daily task ID.
+ *
+ * @param {string} item - Care item key
+ * @returns {string|null} Task ID or null
+ */
 const getDailyTaskIdForItem = (item) => DAY_TASK_ITEM_MAP[item] || null;
 
+/**
+ * Gets the remaining cooldown time in milliseconds for a daily task.
+ *
+ * @param {Object} state - Game state with cooldowns
+ * @param {string} taskId - Task identifier
+ * @returns {number} Remaining cooldown in ms
+ */
 const getDailyTaskCooldownRemainingMs = (state, taskId) => {
   if (!state?.dailyTaskCooldowns) return 0;
   const lastAt = state.dailyTaskCooldowns[taskId] || 0;
@@ -1299,6 +1523,13 @@ const getDailyTaskCooldownRemainingMs = (state, taskId) => {
   return remaining > 0 ? remaining : 0;
 };
 
+/**
+ * Gets the overuse count for a daily task (how many times past target).
+ *
+ * @param {Object} state - Game state with daily tasks
+ * @param {string} taskId - Task identifier
+ * @returns {number} Overuse count
+ */
 const getDailyTaskOveruseCount = (state, taskId) => {
   const task = getDailyTaskConfig(taskId);
   if (!task) return 0;
@@ -1307,6 +1538,12 @@ const getDailyTaskOveruseCount = (state, taskId) => {
   return Math.max(0, overuse - DAY_TASK_OVERUSE_GRACE);
 };
 
+/**
+ * Builds the end-of-program readiness report for parent-facing review.
+ *
+ * @param {Object} state - Game state snapshot
+ * @returns {{score: number, verdict: string, checks: Array, avgCare: number, avgHealth: number, avgHappiness: number, netWorth: number, levelInfo: Object}} Readiness report
+ */
 const buildReadinessReport = (state) => {
   if (!state) {
     return { score: 0, verdict: "No Data", checks: [], avgCare: 0, avgHealth: 0, avgHappiness: 0 };
@@ -1780,7 +2017,8 @@ const createGameState = (gameLength = 90) => {
     minigamesWon: 0,
     tickCounter: initialTickCounter,
     tickInDay: 0,
-    petTickCounter: 0
+    petTickCounter: 0,
+    petSpending: []
   };
 };
 
@@ -2420,7 +2658,7 @@ export default function PawStreet() {
   const [tradeAmount, setTradeAmount] = useState(1);
   const [autoTick, setAutoTick] = useState(true);
   const [tickInterval, setTickInterval] = useState(25); // Default 25 seconds
-  const [autoDay, setAutoDay] = useState(false);
+  const [autoDay, setAutoDay] = useState(true);
   const [gameOver, setGameOver] = useState(false);
   const [gameOverReason, setGameOverReason] = useState("");
   const [isResting, setIsResting] = useState(false);
@@ -2437,11 +2675,23 @@ export default function PawStreet() {
   const [helpMessages, setHelpMessages] = useState(() => createHelpWelcomeMessages());
   const [analyticsChartMode, setAnalyticsChartMode] = useState("financial");
 
-  // Add log function - must be defined before use
+  /**
+   * Adds an entry to the action log.
+   *
+   * @param {string} message - Log message
+   * @param {string} type - Log type (info, pet, trade, market, etc.)
+   */
   const addLog = (message, type = "info") => {
     setActionLog(prev => [...prev, { message, type, time: Date.now() }].slice(-20));
   };
 
+  /**
+   * Triggers evolution if the pet meets the responsibility level requirement.
+   *
+   * @param {Object} state - Current game state
+   * @param {Object} pet - Current pet state
+   * @returns {Object} Updated pet state (evolved or unchanged)
+   */
   const applyEvolutionIfReady = (state, pet) => {
     const result = evolvePetAtLevel(state, pet);
     if (result.evolved) {
@@ -2550,7 +2800,14 @@ export default function PawStreet() {
     }
   }, [gameState, gameOver]);
 
-  // Handle game start with custom pet
+  /**
+   * Initializes a new game with the custom pet configuration.
+   *
+   * @param {string} petName - Pet name
+   * @param {string} petBreed - Breed key
+   * @param {string} petPersonality - Personality key
+   * @param {number} gameLength - Program length in days
+   */
   const handleGameStart = (petName, petBreed, petPersonality, gameLength) => {
     const initialState = createGameState(gameLength);
     initialState.pet = createPet(petName, petBreed, petPersonality);
@@ -2560,8 +2817,12 @@ export default function PawStreet() {
     addLog(`Program length set to ${gameLength} days`, "system");
   };
 
-  // Cost basis calculation using FIFO (First In, First Out).
-  // This mirrors real-world accounting and makes gains/losses feel authentic.
+  /**
+   * Calculates the cost basis for a stock using FIFO.
+   *
+   * @param {string} stockId - Stock identifier
+   * @returns {{avgCost: number, totalShares: number}} Cost basis info
+   */
   const getCostBasis = (stockId) => {
     const transactions = gameState?.transactions || [];
     const lots = [];
@@ -2595,6 +2856,12 @@ export default function PawStreet() {
     return { avgCost, totalShares };
   };
 
+  /**
+   * Records a daily task completion and awards responsibility points.
+   *
+   * @param {Object} state - Game state (mutated in place)
+   * @param {string} taskId - Task identifier
+   */
   const recordDailyTask = (state, taskId) => {
     if (!state.dailyTasks) state.dailyTasks = createDailyTasksState();
     if (!state.dailyTaskTotals) state.dailyTaskTotals = createDailyTaskTotals();
@@ -2611,6 +2878,11 @@ export default function PawStreet() {
     state.dailyTaskTotals[taskId] = (state.dailyTaskTotals[taskId] || 0) + 1;
   };
 
+  /**
+   * Toggles insurance plan activation or switches plans.
+   *
+   * @param {string} planKey - Insurance plan key (basic, premium)
+   */
   const toggleInsurance = (planKey) => {
     if (!gameState) return;
     const plan = INSURANCE_PLANS[planKey];
@@ -2635,17 +2907,31 @@ export default function PawStreet() {
 
     newState.cash -= plan.premium;
     newState.totalSpent += plan.premium;
+    recordPetSpending(newState, "insurance", `Insurance: ${plan.name}`, plan.premium);
     newState.insurance.active = true;
     newState.insurance.daysCovered = (newState.insurance.daysCovered || 0) + 1;
     addLog(`${wasActive ? "🔁 Insurance switched to" : "🛡️ Insurance activated:"} ${plan.name}`, "system");
     setGameState(newState);
   };
 
+  /**
+   * Gets constituent stock objects by their IDs.
+   *
+   * @param {Array<string>} ids - Stock IDs
+   * @returns {Array<Object>} Matching stock objects
+   */
   const getConstituents = (ids) => {
     if (!gameState) return [];
     return ids.map(id => gameState.stocks.find(stock => stock.id === id)).filter(Boolean);
   };
 
+  /**
+   * Builds a composite price history from multiple constituent stocks.
+   *
+   * @param {Array<Object>} constituents - Stock objects with priceHistory
+   * @param {number} multiplier - Price multiplier for the composite
+   * @returns {Array<{day: number, tick: number, tickInDay: number, price: number}>} Composite price history
+   */
   const buildCompositeHistory = (constituents, multiplier = 1) => {
     if (!constituents.length) return [];
 
@@ -2674,6 +2960,14 @@ export default function PawStreet() {
     return history;
   };
 
+  /**
+   * Builds a synthetic derived asset (index, crypto, or metal) from constituent definitions.
+   *
+   * @param {Object} definition - Asset definition with id, name, constituents, multiplier
+   * @param {string} assetType - Type (index, crypto, metal)
+   * @param {string} category - Category for market grouping
+   * @returns {Object} Derived asset object
+   */
   const buildDerivedAsset = (definition, assetType, category) => {
     const constituents = getConstituents(definition.constituents || []);
     const priceHistory = buildCompositeHistory(constituents, definition.multiplier || 1);
@@ -2815,11 +3109,23 @@ export default function PawStreet() {
   const chartDisplayHistory = selectedAssetHistory;
   const chartPixelWidth = Math.max(600, chartDisplayHistory.length * 24);
   const tickLabelLookup = new Map(chartDisplayHistory.map(point => [point.tick, point]));
+  /**
+   * Formats x-axis tick labels for stock charts.
+   *
+   * @param {number} value - Tick value from chart data
+   * @returns {string} Formatted tick label
+   */
   const formatXAxisTick = (value) => {
     const point = tickLabelLookup.get(value);
     if (!point) return '';
     return point.tickInDay === 1 ? `D${point.day}` : '';
   };
+  /**
+   * Formats tooltip labels for stock chart hover.
+   *
+   * @param {number} value - Tick value from chart data
+   * @returns {string} Formatted tooltip label
+   */
   const formatTooltipLabel = (value) => {
     const point = tickLabelLookup.get(value);
     if (!point) return `Tick ${value}`;
@@ -3135,6 +3441,7 @@ export default function PawStreet() {
       case "food_cheap":
         newState.cash -= cost;
         newState.totalSpent += cost;
+        recordPetSpending(newState, "food", "Cheap Food", cost);
         newPet.health = Math.max(0, newPet.health - 3);     // Low quality food harms health
         newPet.stress += 8;                                 // Stress rises due to poor care
         newPet.happiness = Math.max(0, newPet.happiness - 5); // Pet is less happy
@@ -3145,6 +3452,7 @@ export default function PawStreet() {
       case "food_regular":
         newState.cash -= cost;
         newState.totalSpent += cost;
+        recordPetSpending(newState, "food", "Regular Food", cost);
         newPet.health = Math.min(100, newPet.health + 2);   // Modest health gain
         newPet.happiness = Math.min(100, newPet.happiness + 5); // Small happiness boost
         newPet.hunger = Math.max(0, newPet.hunger - 40);    // Solid hunger reduction
@@ -3153,6 +3461,7 @@ export default function PawStreet() {
       case "food_premium":
         newState.cash -= cost;
         newState.totalSpent += cost;
+        recordPetSpending(newState, "food", "Premium Food", cost);
         newPet.health = Math.min(100, newPet.health + 8);   // Strong health boost rewards investment
         newPet.stress = Math.max(0, newPet.stress - 10);    // Premium care calms the pet
         newPet.happiness = Math.min(100, newPet.happiness + 15); // Big happiness spike
@@ -3163,6 +3472,7 @@ export default function PawStreet() {
       case "vet_checkup":
         newState.cash -= cost;
         newState.totalSpent += cost;
+        recordPetSpending(newState, "vet", "Vet Checkup", cost);
         newPet.health = Math.min(100, newPet.health + 30);  // Large boost to encourage vet visits
         newPet.stress = Math.max(0, newPet.stress - 15);    // Vet care reduces anxiety
         newPet.trust = Math.min(100, newPet.trust + 3);     // Trust rises slowly over time
@@ -3181,6 +3491,7 @@ export default function PawStreet() {
             if (window.confirm(`Attempt to cure ${sickness.name}? Cost: $${cureCost} (${(sickness.cureChance * 100).toFixed(0)}% success rate)`)) {
               newState.cash -= cureCost;
               newState.totalSpent += cureCost;
+              recordPetSpending(newState, "vet", `Cure: ${sickness.name}`, cureCost);
               
               const cureSuccess = Math.random() < sickness.cureChance;
               if (cureSuccess) {
@@ -3198,6 +3509,7 @@ export default function PawStreet() {
       case "bathroom":
         newState.cash -= cost;
         newState.totalSpent += cost;
+        recordPetSpending(newState, "bathroom", "Bathroom Break", cost);
         newPet.stress = Math.max(0, newPet.stress - 6);
         newPet.happiness = Math.min(100, newPet.happiness + 2);
         recordDailyTask(newState, "bathroom");
@@ -3205,6 +3517,7 @@ export default function PawStreet() {
       case "walk":
         newState.cash -= cost;
         newState.totalSpent += cost;
+        recordPetSpending(newState, "walk", "Walk", cost);
         newPet.health = Math.min(100, newPet.health + 2);
         newPet.happiness = Math.min(100, newPet.happiness + 6);
         newPet.energy = Math.max(0, newPet.energy - 8);
@@ -3237,6 +3550,11 @@ export default function PawStreet() {
     addLog(`${action} completed. Cost: $${cost}`, "care");
   };
 
+  /**
+   * Completes a minigame session and applies stat changes.
+   *
+   * @param {boolean} success - Whether the player won the minigame
+   */
   const completeMinigame = (success) => {
     setShowMinigame(false);
     setCurrentMinigame(null);
@@ -3253,6 +3571,7 @@ export default function PawStreet() {
     
     newState.cash -= cost;
     newState.totalSpent += cost;
+    recordPetSpending(newState, "play", "Play (Minigame)", cost);
     
     if (success) {
       newState.minigamesWon = (newState.minigamesWon || 0) + 1; // Track wins
@@ -3288,6 +3607,9 @@ export default function PawStreet() {
     setGameState(newState);
   };
 
+  /**
+   * Starts a rest period for the pet, recovering energy and reducing stress.
+   */
   const startRest = () => {
     if (isResting) return;
     
@@ -3309,6 +3631,11 @@ export default function PawStreet() {
     setGameState(newState);
   };
 
+  /**
+   * Buys a room item for the pet if the player has enough cash.
+   *
+   * @param {string} itemKey - Room item key
+   */
   const buyRoomItem = (itemKey) => {
     const item = ROOM_ITEMS[itemKey];
     
@@ -3325,11 +3652,17 @@ export default function PawStreet() {
     let newState = { ...gameState };
     newState.cash -= item.cost;
     newState.pet.roomItems.push(itemKey);
+    recordPetSpending(newState, "room", item.name, item.cost);
     
     setGameState(newState);
     addLog(`${item.emoji} Bought ${item.name} for $${item.cost}!`, "pet");
   };
 
+  /**
+   * Trains a pet coaching skill, spending cash to level up.
+   *
+   * @param {string} skillKey - Skill key (marketIntuition, stressManagement, etc.)
+   */
   const trainSkill = (skillKey) => {
     const skill = COACHING_SKILLS[skillKey];
     const currentLevel = gameState.pet.skills[skillKey];
@@ -3349,11 +3682,15 @@ export default function PawStreet() {
     let newState = { ...gameState };
     newState.cash -= cost;
     newState.pet.skills[skillKey]++;
+    recordPetSpending(newState, "training", skill.name, cost);
     
     setGameState(newState);
     addLog(`${skill.emoji} Trained ${skill.name} to Level ${newState.pet.skills[skillKey]}!`, "pet");
   };
 
+  /**
+   * Accepts the current pet request and applies its effects.
+   */
   const acceptRequest = () => {
     const request = gameState.pet.currentRequest;
     if (!request) return;
@@ -3415,6 +3752,9 @@ export default function PawStreet() {
     addLog(`${request.emoji} Request fulfilled! ${newPet.name} is happy!`, "pet");
   };
 
+  /**
+   * Declines the current pet request and applies decline penalties.
+   */
   const declineRequest = () => {
     const request = gameState.pet.currentRequest;
     if (!request) return;
@@ -3434,6 +3774,11 @@ export default function PawStreet() {
     addLog(`❌ Request declined. ${newPet.name} looks disappointed...`, "pet");
   };
 
+  /**
+   * Handles the result of a Wheel of Fortune spin, applying the event effect.
+   *
+   * @param {Object} event - Wheel event object with effect and value
+   */
   const handleWheelSpin = (event) => {
     let newState = { ...gameState };
     let newPet = { ...newState.pet };
@@ -3858,6 +4203,11 @@ export default function PawStreet() {
     addLog(`=== Day ${newState.day} ===`, "day");
   };
 
+  /**
+   * Loads a timeline snapshot into the current game state.
+   *
+   * @param {Object} timeline - Saved timeline object with snapshot
+   */
   const loadTimeline = (timeline) => {
     const snapshot = { ...timeline.snapshot };
     snapshot.dailyTasks = snapshot.dailyTasks || createDailyTasksState();
@@ -3879,6 +4229,9 @@ export default function PawStreet() {
     addLog(`Loaded: ${timeline.name}`, "system");
   };
 
+  /**
+   * Resets the entire game to its initial state.
+   */
   const resetGame = () => {
     // Complete reset of all game state
     setGameStarted(false);
@@ -4959,10 +5312,11 @@ export default function PawStreet() {
                   {DAY_TASKS.map(task => {
                     const done = gameState.dailyTasks?.[task.id] || 0;
                     const progress = (done / task.target) * 100;
+                    const display = getTaskDisplay(task, gameState.pet.breed);
                     return (
                       <div key={task.id} className="bg-slate-900/50 p-2 rounded border border-slate-700/40">
                         <div className="flex items-center justify-between mb-1">
-                          <div className="text-slate-200 font-bold">{task.icon} {task.label}</div>
+                          <div className="text-slate-200 font-bold">{display.icon} {display.label}</div>
                           <div className="text-slate-400">{done}/{task.target}</div>
                         </div>
                         <div className="w-full bg-slate-800 rounded-full h-1.5">
@@ -5028,10 +5382,10 @@ export default function PawStreet() {
 
                   <div>
                     <h4 className="text-sm text-purple-400 mb-2">
-                      🦮 Walk ({gameState.dailyTasks?.walk || 0}/{DAY_TASKS.find(t => t.id === "walk").target})
+                      {(() => { const d = getTaskDisplay({ id: "walk", icon: "🦮", label: "Walk" }, gameState.pet.breed); return `${d.icon} ${d.label} (${gameState.dailyTasks?.walk || 0}/${DAY_TASKS.find(t => t.id === "walk").target})`; })()}
                     </h4>
                     <CareButton
-                      label={`Walk ($${calculateCareCost('walk', gameState.stocks, gameState.pet, gameState.cash, gameState.insurance)})`}
+                      label={`${getTaskDisplay({ id: "walk", icon: "🦮", label: "Walk" }, gameState.pet.breed).label} ($${calculateCareCost('walk', gameState.stocks, gameState.pet, gameState.cash, gameState.insurance)})`}
                       onClick={() => performCare('walk', 'walk')}
                       disabled={gameState.cash < calculateCareCost('walk', gameState.stocks, gameState.pet, gameState.cash, gameState.insurance)}
                     />
@@ -5287,10 +5641,11 @@ export default function PawStreet() {
                   {DAY_TASKS.map(task => {
                     const done = gameState.dailyTasks?.[task.id] || 0;
                     const progress = (done / task.target) * 100;
+                    const display = getTaskDisplay(task, gameState.pet.breed);
                     return (
                       <div key={task.id} className="bg-slate-900/50 p-3 rounded-lg border border-slate-700/40">
                         <div className="flex items-center justify-between mb-2">
-                          <div className="text-sm font-bold text-slate-200">{task.icon} {task.label}</div>
+                          <div className="text-sm font-bold text-slate-200">{display.icon} {display.label}</div>
                           <div className="text-xs text-slate-400">{done}/{task.target}</div>
                         </div>
                         <div className="w-full bg-slate-800 rounded-full h-2 mb-2">
@@ -5505,7 +5860,7 @@ export default function PawStreet() {
                   <div>
                     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-4">
                       <h3 className="text-lg font-bold text-cyan-400">
-                        {analyticsChartMode === "financial" ? "Financial Performance" : "Pet Wellbeing vs Financial State"}
+                        {analyticsChartMode === "financial" ? "Financial Performance" : analyticsChartMode === "pet" ? "Pet Wellbeing vs Financial State" : "Pet Spending Receipts"}
                       </h3>
                       <div className="flex items-center gap-2 text-xs text-slate-300">
                         <span>Chart</span>
@@ -5516,6 +5871,7 @@ export default function PawStreet() {
                         >
                           <option value="financial">Financial Performance</option>
                           <option value="pet">Pet Wellbeing</option>
+                          <option value="receipts">Pet Spending</option>
                         </select>
                       </div>
                     </div>
@@ -5538,6 +5894,51 @@ export default function PawStreet() {
                           <Area type="monotone" dataKey="portfolioValue" stroke="#3b82f6" fillOpacity={0.3} />
                         </AreaChart>
                       </ResponsiveContainer>
+                    ) : analyticsChartMode === "receipts" ? (
+                      <div className="space-y-4">
+                        <PieChart width={400} height={300}>
+                          <Pie
+                            data={(() => {
+                              const spending = gameState.petSpending || [];
+                              const grouped = {};
+                              spending.forEach(s => {
+                                grouped[s.category] = (grouped[s.category] || 0) + s.cost;
+                              });
+                              return Object.entries(grouped).map(([name, value]) => ({ name, value }));
+                            })()}
+                            dataKey="value"
+                            nameKey="name"
+                            cx="50%"
+                            cy="50%"
+                            outerRadius={100}
+                            label={({ name, value }) => `${name}: $${value.toFixed(0)}`}
+                          >
+                            {(() => {
+                              const colors = ["#f43f5e","#f97316","#eab308","#22c55e","#06b6d4","#6366f1","#a855f7","#ec4899"];
+                              const spending = gameState.petSpending || [];
+                              const cats = [...new Set(spending.map(s => s.category))];
+                              return cats.map((_, i) => (
+                                <Cell key={i} fill={colors[i % colors.length]} />
+                              ));
+                            })()}
+                          </Pie>
+                          <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #22d3ee' }} />
+                        </PieChart>
+                        <div className="text-xs text-slate-400">
+                          <h4 className="text-sm font-bold text-cyan-300 mb-2">All Pet Expenses</h4>
+                          <div className="max-h-48 overflow-y-auto space-y-1">
+                            {(gameState.petSpending || []).slice().reverse().map((entry, i) => (
+                              <div key={i} className="flex justify-between">
+                                <span>Day {entry.day} — {entry.label}</span>
+                                <span className="font-bold text-red-300">${entry.cost.toFixed(2)}</span>
+                              </div>
+                            ))}
+                            {(gameState.petSpending || []).length === 0 && (
+                              <div className="text-center text-slate-500">No pet expenses yet.</div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
                     ) : (
                       <ResponsiveContainer width="100%" height={300}>
                         <LineChart data={gameState.history}>
@@ -5779,6 +6180,11 @@ function CatchMinigame({ onComplete }) {
     return () => clearInterval(interval);
   }, [items, gameActive]);
 
+  /**
+   * Handles catching a falling treat item, incrementing the score.
+   *
+   * @param {number} id - Item ID to remove
+   */
   const catchItem = (id) => {
     setScore(score + 1);
     setItems(items.filter(item => item.id !== id));
@@ -5857,6 +6263,11 @@ function MemoryMinigame({ onComplete }) {
     }
   }, [matched, moves, cards]);
 
+  /**
+   * Flips a memory card and checks for matches.
+   *
+   * @param {number} id - Card ID to flip
+   */
   const flipCard = (id) => {
     if (flipped.length === 2 || flipped.includes(id) || matched.includes(id)) return;
 
@@ -5934,6 +6345,9 @@ function ReactionMinigame({ onComplete }) {
     }
   }, [stage]);
 
+  /**
+   * Handles clicking the reaction button, measuring reaction time.
+   */
   const handleClick = () => {
     if (stage === 'waiting') {
       setStage('too-early');
@@ -5990,6 +6404,12 @@ function ReactionMinigame({ onComplete }) {
 // WHEEL OF FORTUNE COMPONENT
 // ============================================================================
 
+/**
+ * Wheel of Fortune component for weekly random events.
+ *
+ * @param {Object} props
+ * @param {Function} props.onSpin - Callback with the selected event
+ */
 function WheelOfFortune({ onSpin }) {
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
@@ -6208,6 +6628,17 @@ function WheelOfFortune({ onSpin }) {
 // blink animation. Frames advance every `frameMs` (default 500ms). The blink
 // frame is shown briefly so eyes stay open most of the time.
 
+/**
+ * Pixel pet sprite component with idle blink animation.
+ *
+ * @param {Object} props
+ * @param {string} props.breed - Pet breed key
+ * @param {string|null} props.evolutionPath - Evolution variant key
+ * @param {number} props.size - Sprite size in pixels
+ * @param {boolean} props.animate - Enable blink animation
+ * @param {number} props.frameMs - Frame duration in ms
+ * @param {string} props.className - Additional CSS classes
+ */
 function PetSprite({ breed, evolutionPath = null, size = 96, animate = true, frameMs = 500, className = "" }) {
   const frames = getPetSpriteFrames(breed, evolutionPath);
   // Mostly-open sequence: blink only on the final tick of the cycle.
@@ -6247,6 +6678,12 @@ function PetSprite({ breed, evolutionPath = null, size = 96, animate = true, fra
 // PET VISUAL COMPONENT
 // ============================================================================
 
+/**
+ * Pet visual component showing sprite, mood particles, and room items.
+ *
+ * @param {Object} props
+ * @param {Object} props.pet - Pet state object
+ */
 function PetVisual({ pet }) {
   const getEmotionalState = () => {
     const happiness = pet.happiness;
@@ -6412,6 +6849,18 @@ function PetVisual({ pet }) {
 // TUTORIAL & HELP COMPONENTS
 // ============================================================================
 
+/**
+ * Interactive tutorial panel with step-by-step guidance.
+ *
+ * @param {Object} props
+ * @param {Object} props.gameState - Current game state
+ * @param {Array} props.timelines - Saved timeline list
+ * @param {Function} props.setView - View setter for navigation
+ * @param {number} props.tutorialStepIndex - Current step index
+ * @param {Function} props.setTutorialStepIndex - Step index setter
+ * @param {Object} props.tutorialOverrides - Manual step completion overrides
+ * @param {Function} props.setTutorialOverrides - Overrides setter
+ */
 function TutorialPanel({
   gameState,
   timelines,
@@ -6521,6 +6970,40 @@ function TutorialPanel({
               Progress: {progressText}
             </div>
           )}
+
+          {currentStep.id === "guide" && (
+            <div className="max-h-[55vh] overflow-y-auto mb-6 space-y-4 text-xs text-slate-300 bg-slate-900/60 rounded-lg p-4 border border-slate-700/50">
+              <div>
+                <h4 className="text-sm font-bold text-purple-300 mb-2">🐾 Pet Care Basics</h4>
+                <p>Your pet has six core stats: Health, Happiness, Energy, Hunger, Stress, and Trust. Monitor them closely — low health or happiness triggers emergencies. Feed your pet 3 meals a day (cheap/regular/premium), take them out for bathroom breaks, walk them (the walk label changes per breed!), and play minigames to raise happiness. Vet visits cure sickness and provide a big health boost.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-cyan-300 mb-2">📈 Stock Market & Trading</h4>
+                <p>The market moves with a random walk + pet emotion influence — a happy pet boosts returns! You can buy/shares of 12 themed stocks and even build synthetic ETFs from constituent stocks via the "Derived Assets" panel. Track your portfolio value, cost basis, and ROI in the Portfolio tab. Use auto-tick mode to let prices update automatically every N seconds.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-emerald-300 mb-2">📅 Daily Tasks & Responsibility</h4>
+                <p>Complete your pet's daily tasks (feed, bathroom, walk, activity) to earn responsibility points. Higher responsibility levels unlock badges and progress your pet toward evolution. Overusing a task in quick succession triggers overuse penalties, so space out actions. Check your progress in the badges tab.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-pink-300 mb-2">🌟 Evolution (Level 3+)</h4>
+                <p>Once you reach Responsibility Level 3, your pet will evolve into a specialized variant based on your play style. Evolution paths include: Analyst (balanced traits), Guardian (care-focused), Trader (investment-focused), Social (happiness-focused), and Maverick (unpredictable). Each variant gives a passive daily bonus and a unique trait. The evolution name also depends on your pet's breed!</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-yellow-300 mb-2">🏆 Badges & Insurance</h4>
+                <p>Earn badges like "Routine Ranger" (5-day streak), "Trail Scout" (30 outings), and "Budget Boss" ($5k net worth) for cash rewards. Insurance plans reduce vet costs but charge a daily premium — activate one in the badges tab and maintain coverage for the "Safety First" badge.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-orange-300 mb-2">🎡 Wheel of Fortune & Events</h4>
+                <p>The wheel spins once per week for a random event (cash windfall, market rally/selloff, pet mood boost, or chaos event). Stock news events appear during ticks and can shift sector prices. The pet decision engine reacts to your financial stability — keep your pet's trust high for better outcomes.</p>
+              </div>
+              <div>
+                <h4 className="text-sm font-bold text-slate-300 mb-2">⏱️ Timelines & Analytics</h4>
+                <p>Save timelines to compare runs side-by-side. The Analytics tab charts your financial performance, pet wellbeing, and pet spending receipts (with a pie chart by category). Use the auto-day toggle to advance days automatically.</p>
+              </div>
+            </div>
+          )}
+
           <div className="flex items-center gap-3">
             {currentStep.action && (
               <button
@@ -6551,15 +7034,26 @@ function TutorialPanel({
               Next
             </button>
           </div>
-          <div className="mt-6 bg-slate-900/50 border border-slate-700/50 rounded-lg p-4 text-xs text-slate-300">
-            Tip: Use the Help tab if you want quick answers or shortcuts to specific screens.
-          </div>
+          {currentStep.id !== "guide" && (
+            <div className="mt-6 bg-slate-900/50 border border-slate-700/50 rounded-lg p-4 text-xs text-slate-300">
+              Tip: Use the Help tab if you want quick answers or shortcuts to specific screens.
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 }
 
+/**
+ * Help chat component with bot responses and quick prompts.
+ *
+ * @param {Object} props
+ * @param {Object} props.gameState - Current game state
+ * @param {Function} props.setView - View setter for navigation
+ * @param {Array} props.helpMessages - Chat message history
+ * @param {Function} props.setHelpMessages - Messages setter
+ */
 function HelpChat({ gameState, setView, helpMessages, setHelpMessages }) {
   const [draft, setDraft] = useState("");
   const endRef = useRef(null);
@@ -6702,6 +7196,14 @@ function HelpChat({ gameState, setView, helpMessages, setHelpMessages }) {
 // HELPER COMPONENTS
 // ============================================================================
 
+/**
+ * Navigation tab button component.
+ *
+ * @param {Object} props
+ * @param {boolean} props.active - Whether the tab is active
+ * @param {Function} props.onClick - Click handler
+ * @param {React.ReactNode} props.children - Button content
+ */
 function NavButton({ active, onClick, children }) {
   return (
     <button
@@ -6715,6 +7217,14 @@ function NavButton({ active, onClick, children }) {
   );
 }
 
+/**
+ * Horizontal stat bar component with gradient fill.
+ *
+ * @param {Object} props
+ * @param {string} props.label - Stat label
+ * @param {number} props.value - Stat value (0-100)
+ * @param {string} props.color - Tailwind text color class
+ */
 function StatBar({ label, value, color }) {
   const pct = Math.max(0, Math.min(100, value));
   const fill =
@@ -6737,6 +7247,13 @@ function StatBar({ label, value, color }) {
   );
 }
 
+/**
+ * Compact stat bar component for sidebars.
+ *
+ * @param {Object} props
+ * @param {string} props.label - Stat label
+ * @param {number} props.value - Stat value (0-100)
+ */
 function StatMini({ label, value }) {
   return (
     <div className="flex justify-between items-center">
@@ -6756,6 +7273,14 @@ function StatMini({ label, value }) {
   );
 }
 
+/**
+ * Care action button component.
+ *
+ * @param {Object} props
+ * @param {string} props.label - Button label
+ * @param {Function} props.onClick - Click handler
+ * @param {boolean} props.disabled - Whether the button is disabled
+ */
 function CareButton({ label, onClick, disabled }) {
   return (
     <button
@@ -6772,6 +7297,14 @@ function CareButton({ label, onClick, disabled }) {
   );
 }
 
+/**
+ * Metric display card component.
+ *
+ * @param {Object} props
+ * @param {string} props.label - Metric label
+ * @param {string|number} props.value - Metric value
+ * @param {string} props.color - Tailwind text color class
+ */
 function MetricCard({ label, value, color }) {
   return (
     <div className="bg-slate-900/50 backdrop-blur-sm rounded-xl p-4 border border-slate-700/60 shadow-inner shadow-black/20 transition-all duration-200 hover:border-slate-500/60 hover:-translate-y-0.5 hover:shadow-lg">
