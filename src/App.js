@@ -2018,7 +2018,8 @@ const createGameState = (gameLength = 90) => {
     tickCounter: initialTickCounter,
     tickInDay: 0,
     petTickCounter: 0,
-    petSpending: []
+    petSpending: [],
+    derivedHoldings: {}
   };
 };
 
@@ -2993,7 +2994,7 @@ export default function PawStreet() {
       volatility,
       priceHistory,
       change,
-      owned: 0,
+      owned: gameState?.derivedHoldings?.[definition.id] || 0,
       ethicalRating: null
     };
   };
@@ -3133,7 +3134,7 @@ export default function PawStreet() {
     return `Day ${point.day}${sub}`;
   };
   const axisDomain = ['dataMin - 5', 'dataMax + 5'];
-  const selectedStock = selectedAsset && selectedAsset.assetType === 'stock' ? selectedAsset : null;
+  const selectedTradable = selectedAsset;
 
   // Keep a valid selection when switching market sub-tabs.
   // Dependencies: gameState (asset lists), marketCategory (active subtab).
@@ -3150,8 +3151,13 @@ export default function PawStreet() {
   const portfolioValue = gameState ? gameState.stocks.reduce((sum, stock) => 
     sum + (stock.owned * stock.price), 0
   ) : 0;
-  
-  const totalNetWorth = gameState ? portfolioValue + gameState.cash : 0;
+  const derivedValue = gameState && gameState.derivedHoldings
+    ? Object.entries(gameState.derivedHoldings).reduce((sum, [id, shares]) => {
+        const asset = allMarketAssets.find(a => a.id === id);
+        return sum + (asset ? shares * asset.price : 0);
+      }, 0)
+    : 0;
+  const totalNetWorth = gameState ? portfolioValue + derivedValue + gameState.cash : 0;
   const responsibilityLevelInfo = gameState ? getResponsibilityLevelInfo(gameState.responsibilityPoints || 0) : RESPONSIBILITY_LEVELS[0];
   const dailyCompletionPercent = gameState ? calculateDailyCompletion(gameState.dailyTasks) : 0;
   const readinessReport = gameState ? buildReadinessReport(gameState) : null;
@@ -3314,45 +3320,52 @@ export default function PawStreet() {
    *
    * @param {Object} stockParam - Stock object from UI selection
    */
-  const buyStock = (stockParam) => {
-    // Get the current stock data from gameState
-    const currentStock = gameState.stocks.find(s => s.id === stockParam.id);
-    
-    if (!currentStock) {
-      addLog(`Stock ${stockParam.id} not found`, "error");
+  const buyStock = (assetParam) => {
+    // Look up asset in the combined market list to get current price and metadata
+    const marketAsset = allMarketAssets.find(a => a.id === assetParam.id);
+    if (!marketAsset) {
+      addLog(`Asset ${assetParam.id} not found`, "error");
       return;
     }
-    
-    const cost = currentStock.price * tradeAmount;
+
+    const cost = marketAsset.price * tradeAmount;
     if (gameState.cash < cost) {
-      addLog(`Insufficient funds to buy ${tradeAmount} ${currentStock.id}. Need: $${cost.toFixed(2)}`, "error");
+      addLog(`Insufficient funds to buy ${tradeAmount} ${marketAsset.id}. Need: $${cost.toFixed(2)}`, "error");
       return;
     }
 
     let newState = { ...gameState };
     newState.cash -= cost;
-    newState.stocks = newState.stocks.map(s => 
-      s.id === currentStock.id ? { ...s, owned: s.owned + tradeAmount } : s
-    );
-    
+
+    if (marketAsset.assetType === 'stock') {
+      newState.stocks = newState.stocks.map(s =>
+        s.id === marketAsset.id ? { ...s, owned: s.owned + tradeAmount } : s
+      );
+    } else {
+      newState.derivedHoldings = {
+        ...newState.derivedHoldings,
+        [marketAsset.id]: (newState.derivedHoldings[marketAsset.id] || 0) + tradeAmount
+      };
+    }
+
     newState.transactions.push({
       day: newState.day,
       type: 'BUY',
-      stock: currentStock.id,
+      stock: marketAsset.id,
       amount: tradeAmount,
-      price: currentStock.price,
+      price: marketAsset.price,
       total: cost
     });
-    
-    // Ethical score impact
-    if (currentStock.ethicalRating > 70) {
+
+    // Ethical score impact (only for stocks with a rating)
+    if (marketAsset.ethicalRating && marketAsset.ethicalRating > 70) {
       newState.ethicsScore = Math.min(100, newState.ethicsScore + 3);
-    } else if (currentStock.ethicalRating < 40) {
+    } else if (marketAsset.ethicalRating && marketAsset.ethicalRating < 40) {
       newState.ethicsScore = Math.max(0, newState.ethicsScore - 2);
     }
-    
+
     setGameState(newState);
-    addLog(`Bought ${tradeAmount} ${currentStock.name} @ $${currentStock.price.toFixed(2)}`, "trade");
+    addLog(`Bought ${tradeAmount} ${marketAsset.name} @ $${marketAsset.price.toFixed(2)}`, "trade");
   };
 
   /**
@@ -3361,38 +3374,52 @@ export default function PawStreet() {
    *
    * @param {Object} stockParam - Stock object from UI selection
    */
-  const sellStock = (stockParam) => {
-    // Get the current stock data from gameState to ensure we have latest owned count
-    const currentStock = gameState.stocks.find(s => s.id === stockParam.id);
-    
-    if (!currentStock) {
-      addLog(`Stock ${stockParam.id} not found`, "error");
+  const sellStock = (assetParam) => {
+    const marketAsset = allMarketAssets.find(a => a.id === assetParam.id);
+    if (!marketAsset) {
+      addLog(`Asset ${assetParam.id} not found`, "error");
       return;
     }
-    
-    if (currentStock.owned < tradeAmount) {
-      addLog(`Insufficient shares to sell ${tradeAmount} ${stockParam.id}. You own: ${currentStock.owned}`, "error");
+
+    const owned = marketAsset.assetType === 'stock'
+      ? (gameState.stocks.find(s => s.id === marketAsset.id)?.owned || 0)
+      : (gameState.derivedHoldings?.[marketAsset.id] || 0);
+
+    if (owned < tradeAmount) {
+      addLog(`Insufficient shares to sell ${tradeAmount} ${marketAsset.id}. You own: ${owned}`, "error");
       return;
     }
 
     let newState = { ...gameState };
-    const proceeds = currentStock.price * tradeAmount;
+    const proceeds = marketAsset.price * tradeAmount;
     newState.cash += proceeds;
-    newState.stocks = newState.stocks.map(s => 
-      s.id === currentStock.id ? { ...s, owned: s.owned - tradeAmount } : s
-    );
-    
+
+    if (marketAsset.assetType === 'stock') {
+      newState.stocks = newState.stocks.map(s =>
+        s.id === marketAsset.id ? { ...s, owned: s.owned - tradeAmount } : s
+      );
+    } else {
+      newState.derivedHoldings = {
+        ...newState.derivedHoldings,
+        [marketAsset.id]: (newState.derivedHoldings[marketAsset.id] || 0) - tradeAmount
+      };
+      // Clean up zero holdings
+      if (newState.derivedHoldings[marketAsset.id] <= 0) {
+        delete newState.derivedHoldings[marketAsset.id];
+      }
+    }
+
     newState.transactions.push({
       day: newState.day,
       type: 'SELL',
-      stock: currentStock.id,
+      stock: marketAsset.id,
       amount: tradeAmount,
-      price: currentStock.price,
+      price: marketAsset.price,
       total: proceeds
     });
-    
+
     setGameState(newState);
-    addLog(`Sold ${tradeAmount} ${currentStock.name} @ $${currentStock.price.toFixed(2)}`, "trade");
+    addLog(`Sold ${tradeAmount} ${marketAsset.name} @ $${marketAsset.price.toFixed(2)}`, "trade");
   };
 
   // ============================================================================
@@ -4776,16 +4803,16 @@ export default function PawStreet() {
                     </div>
 
                     {/* Stock News Section */}
-                    {selectedStock && (
+                    {selectedTradable && (
                       <div className="mt-4 pt-4 border-t border-slate-700">
                         <div className="flex items-center justify-between mb-3">
                           <h4 className="text-sm font-bold text-cyan-300">📰 Latest News</h4>
                           <div className="text-xs text-slate-500">Live Updates</div>
                         </div>
                         
-                        {selectedStock.news && selectedStock.news.length > 0 ? (
+                        {selectedTradable.news && selectedTradable.news.length > 0 ? (
                           <div className="space-y-2 max-h-48 overflow-y-auto">
-                            {selectedStock.news.map((newsItem, idx) => (
+                            {selectedTradable.news.map((newsItem, idx) => (
                               <div 
                                 key={idx}
                                 className={`p-3 rounded-lg border-l-4 ${
@@ -4813,7 +4840,7 @@ export default function PawStreet() {
                         ) : (
                           <div className="text-center py-6 text-slate-500 text-sm">
                             <div className="text-2xl mb-2">📰</div>
-                            <div>No recent news for {selectedStock.name}</div>
+                            <div>No recent news for {selectedTradable.name}</div>
                             <div className="text-xs mt-1">News will appear as market conditions change</div>
                           </div>
                         )}
@@ -4823,9 +4850,9 @@ export default function PawStreet() {
                 )}
 
                 {/* Trading Panel */}
-                {selectedStock && (
+                {selectedTradable && (
                   <div className="mt-4 bg-black/40 backdrop-blur border border-cyan-500/30 rounded-lg p-4">
-                    <h3 className="text-lg font-bold text-cyan-300 mb-3">Trade {selectedStock.name}</h3>
+                    <h3 className="text-lg font-bold text-cyan-300 mb-3">Trade {selectedTradable.name}</h3>
                     
                     <div className="grid grid-cols-3 gap-4">
                       <div>
@@ -4841,28 +4868,28 @@ export default function PawStreet() {
                       <div>
                         <label className="text-xs text-slate-400 block mb-1">Price per Share</label>
                         <div className="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm text-cyan-300">
-                          ${selectedStock.price.toFixed(2)}
+                          ${selectedTradable.price.toFixed(2)}
                         </div>
                       </div>
                       <div>
                         <label className="text-xs text-slate-400 block mb-1">Total</label>
                         <div className="bg-slate-900 border border-slate-700 rounded px-3 py-2 text-sm font-bold text-cyan-300">
-                          ${(selectedStock.price * tradeAmount).toFixed(2)}
+                          ${(selectedTradable.price * tradeAmount).toFixed(2)}
                         </div>
                       </div>
                     </div>
                     
                     <div className="flex gap-2 mt-4">
                       <button
-                        onClick={() => buyStock(selectedStock)}
-                        disabled={gameState.cash < selectedStock.price * tradeAmount}
+                        onClick={() => buyStock(selectedTradable)}
+                        disabled={gameState.cash < selectedTradable.price * tradeAmount}
                         className="flex-1 bg-green-600 hover:bg-green-500 disabled:bg-slate-700 disabled:text-slate-500 px-4 py-2 rounded font-bold transition"
                       >
                         Buy
                       </button>
                       <button
-                        onClick={() => sellStock(selectedStock)}
-                        disabled={selectedStock.owned < tradeAmount}
+                        onClick={() => sellStock(selectedTradable)}
+                        disabled={selectedTradable.owned < tradeAmount}
                         className="flex-1 bg-red-600 hover:bg-red-500 disabled:bg-slate-700 disabled:text-slate-500 px-4 py-2 rounded font-bold transition"
                       >
                         Sell
@@ -4934,9 +4961,9 @@ export default function PawStreet() {
                       <div className="text-[10px] text-slate-400 mb-2 line-clamp-2">{asset.description}</div>
                       
                       <div className="flex items-center justify-between text-[10px]">
-                        {asset.assetType === 'stock' ? (
-                          <div className="flex items-center gap-2">
-                            <div className="text-slate-500">Own: {asset.owned}</div>
+                        <div className="flex items-center gap-2">
+                          <div className="text-slate-500">Own: {asset.owned}</div>
+                          {asset.ethicalRating !== null && asset.ethicalRating !== undefined ? (
                             <div className={`${
                               asset.ethicalRating > 70 ? 'text-green-400' :
                               asset.ethicalRating > 40 ? 'text-yellow-400' :
@@ -4944,10 +4971,10 @@ export default function PawStreet() {
                             }`}>
                               E:{asset.ethicalRating}
                             </div>
-                          </div>
-                        ) : (
-                          <div className="text-slate-500 uppercase">{asset.assetType}</div>
-                        )}
+                          ) : (
+                            <div className="text-slate-500 uppercase">{asset.assetType}</div>
+                          )}
+                        </div>
                         {asset.change !== undefined && (
                           <div className={`flex items-center gap-1 ${
                             asset.change > 0 ? 'text-green-400' :
@@ -5816,9 +5843,36 @@ export default function PawStreet() {
                     {gameState.stocks.filter(s => s.owned > 0).length === 0 && (
                       <tr>
                         <td colSpan={7} className="p-4 text-center text-slate-500">
-                          No holdings yet
+                          No stock holdings yet
                         </td>
                       </tr>
+                    )}
+
+                    {/* Derived asset holdings */}
+                    {gameState.derivedHoldings && Object.keys(gameState.derivedHoldings).length > 0 && (
+                      <>
+                        <tr className="border-b border-cyan-500/20">
+                          <td colSpan={7} className="p-2 text-xs text-cyan-400 font-bold">Derived Assets (Indexes / Crypto / Metals)</td>
+                        </tr>
+                        {Object.entries(gameState.derivedHoldings).map(([id, shares]) => {
+                          const marketAsset = allMarketAssets.find(a => a.id === id);
+                          if (!marketAsset || shares <= 0) return null;
+                          return (
+                            <tr key={id} className="border-b border-slate-700/30">
+                              <td className="p-2">
+                                <div className="font-bold text-cyan-300">{marketAsset.id}</div>
+                                <div className="text-xs text-slate-400 capitalize">{marketAsset.assetType} — {marketAsset.name}</div>
+                              </td>
+                              <td className="p-2 text-right">{shares}</td>
+                              <td className="p-2 text-right">${marketAsset.price.toFixed(2)}</td>
+                              <td className="p-2 text-right text-slate-500">—</td>
+                              <td className="p-2 text-right text-slate-500">—</td>
+                              <td className="p-2 text-right font-bold">${(shares * marketAsset.price).toFixed(2)}</td>
+                              <td className="p-2 text-right text-slate-500">—</td>
+                            </tr>
+                          );
+                        })}
+                      </>
                     )}
                   </tbody>
                 </table>
