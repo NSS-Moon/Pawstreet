@@ -816,6 +816,14 @@ This project is provided for educational purposes under the MIT License. You are
 - **Our Adviser** - [Adviser name] for guidance and support
 - **Our School** - [School name] for supporting our participation
 
+### Citations
+- **OpenAI Codex** — OpenAI. Codex: AI system that translates natural language to code. https://openai.com/blog/openai-codex
+- **React** — Meta Open Source. React: A JavaScript library for building user interfaces. Version 18. https://react.dev
+- **GitHub** — GitHub, Inc. GitHub: Where the world builds software. https://github.com
+- **JavaScript** — ECMAScript 2024 Language Specification. ECMA International. https://ecma-international.org/publications-and-standards/standards/ecma-262
+- **HTML5** — World Wide Web Consortium (W3C). HTML5 Specification. https://html.spec.whatwg.org
+- **CSS3** — World Wide Web Consortium
+
 ---
 
 ## 📞 Support & Contact
