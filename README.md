@@ -1,6 +1,6 @@
 # 🐾 PAWSTREET - Virtual Pet Market Simulator
 
-![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)
+![Version](https://img.shields.io/badge/version-1.3.4-blue.svg)
 ![React](https://img.shields.io/badge/React-18.x-61dafb.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 
@@ -28,6 +28,11 @@ In PAWSTREET, you're not just a pet owner—you're a caretaker navigating the co
 ## ✨ Key Features
 
 ### 🐕 Pet-Oriented Gameplay
+
+0. **Breed Activities**
+   - 8 unique breeds (Cat, Dog, Rabbit, Hamster, Bird, Fish, Turtle, Fox)
+   - Each breed has custom walk/outing labels and icons in the daily routine
+   - Breed identity affects visual sprites, evolution names, and activity flavor
 
 1. **Pet Personalities** (Choose at start)
    - 🛡️ **Cautious** - Stressed by volatility, prefers safe stocks
@@ -71,6 +76,12 @@ In PAWSTREET, you're not just a pet owner—you're a caretaker navigating the co
    - Earn cash and item rewards
    - Track your progress across playthroughs
 
+8. **Breed-Specific Evolution System**
+   - 3 evolution paths (Guardian, Analyst, Maverick) with unique traits and daily bonuses
+   - Dedicated Evolutions tab showing current status, path cards, and breed-specific evolution names
+   - Grayscale sprite previews for locked evolution paths; full-color for active evolution
+   - Progress bar toward the next evolution tier
+
 ### 📊 Market Simulation
 
 - **12 Unique Stocks** across sectors (Food, Healthcare, Entertainment, Luxury, etc.)
@@ -79,6 +90,8 @@ In PAWSTREET, you're not just a pet owner—you're a caretaker navigating the co
 - **Market Events** - Random crashes, booms, and special events
 - **Ethical Investing** - High ethics score affects pet happiness
 - **Real Charts** - Visual price history with technical analysis
+- **Expanded Asset Trading** - Trade indexes, crypto, and metals alongside stocks
+- **Derived Asset Holdings** - Ownership tracked per asset class, displayed in portfolio
 
 ### 🎮 Minigames
 
@@ -103,6 +116,8 @@ Three skill-based minigames for playtime:
 - **Auto-Tick System** - Customizable market update intervals (5-300 seconds)
 - **Auto-Day Mode** - Automatic day progression every 3 minutes
 - **Rest System** - Let your pet rest to recover energy
+- **Pet Spending Analytics** - Pie chart breakdown of all pet expenses by category with color-coded key and totals
+- **Tutorial Guide** - 5-step interactive tutorial with scrollable game guide content
 
 ---
 
@@ -165,10 +180,12 @@ npx tailwindcss init
    - Select a personality type (affects gameplay strategy)
 
 2. **Understand the Interface**
-   - **Market View**: Trade stocks, view charts, check news
-   - **Portfolio View**: See holdings and transaction history
+   - **Market View**: Trade stocks, indexes, crypto, and metals; view charts, check news
+   - **Portfolio View**: See all holdings including derived assets, transaction history
    - **Pet View**: Care for your pet, buy items, train skills
-   - **Analytics View**: Charts and performance metrics
+   - **Evolutions View**: Track evolution progress, view path cards with sprite previews
+   - **Analytics View**: Charts, performance metrics, and pet spending breakdown (pie chart)
+   - **Badges View**: Track achievements and rewards
    - **Timelines View**: Compare different playthroughs
 
 ### Core Gameplay LoopDay Cycle:
@@ -491,7 +508,7 @@ Triggers every 7 days. 12 possible outcomes:
 ├── public/
 │   └── index.html          # Tailwind CDN script added here
 ├── src/
-│   ├── App.js              # Complete game code (~4,200 lines)
+│   ├── App.js              # Complete game code (~7,400 lines)
 │   └── index.js            # React entry point
 ├── node_modules/           # Dependencies (300-400MB)
 ├── package.json
@@ -499,10 +516,10 @@ Triggers every 7 days. 12 possible outcomes:
 
 ### Performance
 
-- **File Size**: ~160KB (single file)
-- **Lines of Code**: ~4,200
-- **Components**: 15+ React components
-- **State Variables**: 20+ useState hooks
+- **File Size**: ~280KB (single file)
+- **Lines of Code**: ~7,400
+- **Components**: 20+ React components
+- **State Variables**: 30+ useState hooks
 - **Frame Rate**: 60 FPS (CSS animations)
 - **Memory Usage**: ~50-100MB
 
@@ -882,19 +899,8 @@ Thank you for playing PAWSTREET! 🐾📈
 
 ---
 
-Citations:
-
-OpenAI Codex — OpenAI. Codex: AI system that translates natural language to code. https://openai.com/blog/openai-codex
-React — Meta Open Source. React: A JavaScript library for building user interfaces. Version 18. https://react.dev
-GitHub — GitHub, Inc. GitHub: Where the world builds software. https://github.com
-JavaScript — ECMAScript 2024 Language Specification. ECMA International. https://ecma-international.org/publications-and-standards/standards/ecma-262
-HTML5 — World Wide Web Consortium (W3C). HTML5 Specification. https://html.spec.whatwg.org
-CSS3 — World Wide Web Consortium
-
----
-
 **Project Stats:**
-- 📝 Lines of Code: ~7,300
+- 📝 Lines of Code: ~7,400
 - 🎮 Features Implemented: 50+
 - ⏱️ Development Time: ~1 year
 - 💡 Original Concepts: 10+
@@ -902,4 +908,4 @@ CSS3 — World Wide Web Consortium
 
 *Last Updated: June 2026*
 *Version: 1.3.4*
-*README Version: 2.0.0 (Competition Edition)*
+*README Version: 2.1.0 (Competition Edition)*
