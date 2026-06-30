@@ -2650,7 +2650,7 @@ export default function PawStreet() {
   const [gameState, setGameState] = useState(null);
   const [timelines, setTimelines] = useState([]);
   const [selectedTimeline, setSelectedTimeline] = useState(null);
-  const [view, setView] = useState("tutorial"); // market, portfolio, pet, tutorial, help, analytics, badges, timelines
+  const [view, setView] = useState("tutorial"); // market, portfolio, pet, tutorial, help, analytics, badges, evolutions, timelines
   const [actionLog, setActionLog] = useState([]);
   const [selectedAssetId, setSelectedAssetId] = useState(null);
   const [marketCategory, setMarketCategory] = useState("stocks");
@@ -4294,6 +4294,7 @@ export default function PawStreet() {
     { key: 'tutorial', label: 'Tutorial', description: 'Learn the basics of PAWSTREET', icon: <Play size={18} /> },
     { key: 'help', label: 'Help', description: 'Get guidance and gameplay tips', icon: <Brain size={18} /> },
     { key: 'badges', label: 'Badges', description: 'Track achievements and rewards', icon: <BadgeIcon size={18} /> },
+    { key: 'evolutions', label: 'Evolutions', description: 'Pet evolution paths and progression', icon: <Zap size={18} /> },
     { key: 'analytics', label: 'Analytics', description: 'Charts and performance metrics', icon: <BarChartIcon size={18} /> },
     { key: 'timelines', label: `Timelines (${timelines.length})`, description: 'Save and compare playthroughs', icon: <Clock size={18} /> }
   ];
@@ -5774,6 +5775,108 @@ export default function PawStreet() {
           </div>
         )}
 
+        {/* EVOLUTIONS VIEW */}
+        {view === "evolutions" && (
+          <div className="space-y-4">
+            <div className="bg-black/40 backdrop-blur border border-purple-500/30 rounded-lg p-6">
+              <h2 className="text-2xl font-bold text-purple-300 mb-6">Pet Evolution</h2>
+
+              {/* Current pet evolution status */}
+              <div className="bg-purple-950/30 border border-purple-500/30 rounded-lg p-4 mb-6">
+                <h3 className="text-sm font-bold text-purple-200 mb-3">{gameState.pet.name}'s Evolution</h3>
+                <div className="flex items-center gap-4">
+                  <div className="text-3xl">{gameState.pet.hasEvolved ? PET_EVOLUTION_VARIANTS[gameState.pet.evolutionPath]?.icon || "🌟" : "🐾"}</div>
+                  <div className="flex-1">
+                    <div className="text-lg font-bold text-white">{gameState.pet.evolution}</div>
+                    {gameState.pet.hasEvolved ? (
+                      <div className="space-y-1 text-xs text-slate-300">
+                        <div>Trait: <span className="text-emerald-300">{gameState.pet.evolutionTrait}</span></div>
+                        <div>Attribute: <span className="text-cyan-300">{gameState.pet.evolutionAttribute}</span></div>
+                        <div>Bonus: <span className="text-yellow-300">{formatEvolutionBonus(gameState.pet.evolutionBonus)}</span></div>
+                        <div className="text-purple-300">{gameState.pet.evolutionProfile?.learnerType} • {gameState.pet.evolutionProfile?.traderType}</div>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        <div className="text-xs text-slate-400">
+                          Unlocks at Responsibility Level {PET_EVOLUTION_LEVEL}
+                        </div>
+                        <div className="w-full bg-slate-800 rounded-full h-2">
+                          <div
+                            className="h-2 rounded-full bg-purple-400 transition-all"
+                            style={{ width: `${Math.min(100, ((gameState.responsibilityPoints || 0) / PET_EVOLUTION_LEVEL_POINTS) * 100)}%` }}
+                          />
+                        </div>
+                        <div className="text-[10px] text-slate-500">
+                          {Math.min(gameState.responsibilityPoints || 0, PET_EVOLUTION_LEVEL_POINTS)} / {PET_EVOLUTION_LEVEL_POINTS} responsibility points
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Evolution Paths */}
+              <h3 className="text-lg font-bold text-purple-200 mb-4">Evolution Paths</h3>
+              <div className="grid grid-cols-3 gap-4 mb-6">
+                {Object.entries(PET_EVOLUTION_VARIANTS).map(([key, variant]) => (
+                  <div key={key} className={`bg-slate-900/60 border rounded-lg p-4 ${
+                    gameState.pet.evolutionPath === key ? 'border-purple-400 shadow-lg shadow-purple-500/20' : 'border-slate-700'
+                  }`}>
+                    <div className="flex flex-col items-center gap-2 mb-2">
+                      <PetSprite
+                        breed={gameState.pet.breed}
+                        evolutionPath={key}
+                        size={64}
+                        animate={false}
+                        gray={gameState.pet.evolutionPath !== key}
+                        className="mx-auto"
+                      />
+                      <div className="flex items-center gap-2">
+                        <span className="text-2xl">{variant.icon}</span>
+                        <span className="text-lg font-bold text-white">{variant.label}</span>
+                      </div>
+                    </div>
+                    <div className="text-xs text-slate-300 mb-2">{variant.description}</div>
+                    <div className="space-y-1 text-[10px] text-slate-400">
+                      <div>Trait: <span className="text-emerald-300">{variant.trait}</span></div>
+                      <div>Attribute: <span className="text-cyan-300">{variant.attribute}</span></div>
+                      <div>Daily Bonus: <span className="text-yellow-300">{formatEvolutionBonus(variant.dailyBonus)}</span></div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Breed-specific Evolution Names */}
+              <h3 className="text-lg font-bold text-purple-200 mb-4">Breed Evolution Names</h3>
+              <div className="overflow-x-auto">
+                <table className="w-full text-xs">
+                  <thead>
+                    <tr className="border-b border-purple-500/30">
+                      <th className="text-left p-2 text-purple-300">Breed</th>
+                      {Object.keys(PET_EVOLUTION_VARIANTS).map(key => (
+                        <th key={key} className="text-left p-2 text-purple-300">{PET_EVOLUTION_VARIANTS[key].icon} {PET_EVOLUTION_VARIANTS[key].label}</th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(PET_EVOLUTION_NAMES).map(([breedKey, names]) => {
+                      const breed = PET_BREEDS[breedKey];
+                      return (
+                        <tr key={breedKey} className={`border-b border-slate-700/30 ${breedKey === gameState.pet.breed ? 'bg-purple-900/20' : ''}`}>
+                          <td className="p-2 font-bold text-cyan-300">{breed?.emoji || ''} {breed?.name || breedKey}</td>
+                          <td className="p-2">{names.guardian}</td>
+                          <td className="p-2">{names.analyst}</td>
+                          <td className="p-2">{names.maverick}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* PORTFOLIO VIEW */}
         {view === "portfolio" && (
           <div className="space-y-4">
@@ -5949,7 +6052,7 @@ export default function PawStreet() {
                         </AreaChart>
                       </ResponsiveContainer>
                     ) : analyticsChartMode === "receipts" ? (
-                      <div className="space-y-4">
+                      <div className="flex gap-6 items-start">
                         <PieChart width={400} height={300}>
                           <Pie
                             data={(() => {
@@ -5962,10 +6065,9 @@ export default function PawStreet() {
                             })()}
                             dataKey="value"
                             nameKey="name"
-                            cx="50%"
+                            cx="58%"
                             cy="50%"
                             outerRadius={100}
-                            label={({ name, value }) => `${name}: $${value.toFixed(0)}`}
                           >
                             {(() => {
                               const colors = ["#f43f5e","#f97316","#eab308","#22c55e","#06b6d4","#6366f1","#a855f7","#ec4899"];
@@ -5978,18 +6080,34 @@ export default function PawStreet() {
                           </Pie>
                           <Tooltip contentStyle={{ backgroundColor: '#0f172a', border: '1px solid #22d3ee' }} />
                         </PieChart>
-                        <div className="text-xs text-slate-400">
-                          <h4 className="text-sm font-bold text-cyan-300 mb-2">All Pet Expenses</h4>
-                          <div className="max-h-48 overflow-y-auto space-y-1">
-                            {(gameState.petSpending || []).slice().reverse().map((entry, i) => (
-                              <div key={i} className="flex justify-between">
-                                <span>Day {entry.day} — {entry.label}</span>
-                                <span className="font-bold text-red-300">${entry.cost.toFixed(2)}</span>
+                        <div className="flex-1 space-y-2">
+                          <h4 className="text-sm font-bold text-cyan-300 mb-2">Spending by Category</h4>
+                          {(() => {
+                            const colors = ["#f43f5e","#f97316","#eab308","#22c55e","#06b6d4","#6366f1","#a855f7","#ec4899"];
+                            const spending = gameState.petSpending || [];
+                            const grouped = {};
+                            spending.forEach(s => {
+                              grouped[s.category] = (grouped[s.category] || 0) + s.cost;
+                            });
+                            const total = Object.values(grouped).reduce((a, b) => a + b, 0);
+                            return Object.entries(grouped).map(([category, catTotal], i) => (
+                              <div key={category} className="flex items-center justify-between p-1.5 rounded hover:bg-slate-800/50">
+                                <div className="flex items-center gap-2">
+                                  <div className="w-3 h-3 rounded-full" style={{ backgroundColor: colors[i % colors.length] }} />
+                                  <span className="text-xs text-slate-300 capitalize">{category}</span>
+                                </div>
+                                <div className="flex items-center gap-3">
+                                  <span className="text-xs text-slate-400">${catTotal.toFixed(2)}</span>
+                                  <span className="text-[10px] text-slate-500 w-10 text-right">({((catTotal / total) * 100).toFixed(1)}%)</span>
+                                </div>
                               </div>
-                            ))}
-                            {(gameState.petSpending || []).length === 0 && (
-                              <div className="text-center text-slate-500">No pet expenses yet.</div>
-                            )}
+                            ));
+                          })()}
+                          <div className="border-t border-slate-700 pt-2 mt-2">
+                            <div className="flex justify-between text-xs text-slate-300">
+                              <span className="font-bold">Total</span>
+                              <span className="font-bold text-red-300">${(gameState.petSpending || []).reduce((s, e) => s + e.cost, 0).toFixed(2)}</span>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -6693,7 +6811,7 @@ function WheelOfFortune({ onSpin }) {
  * @param {number} props.frameMs - Frame duration in ms
  * @param {string} props.className - Additional CSS classes
  */
-function PetSprite({ breed, evolutionPath = null, size = 96, animate = true, frameMs = 500, className = "" }) {
+function PetSprite({ breed, evolutionPath = null, size = 96, animate = true, frameMs = 500, className = "", gray = false }) {
   const frames = getPetSpriteFrames(breed, evolutionPath);
   // Mostly-open sequence: blink only on the final tick of the cycle.
   const sequence = frames.length > 1 ? [0, 0, 0, 0, 1] : [0];
@@ -6723,6 +6841,7 @@ function PetSprite({ breed, evolutionPath = null, size = 96, animate = true, fra
         imageRendering: "pixelated",
         WebkitUserSelect: "none",
         userSelect: "none",
+        filter: gray ? "grayscale(100%) brightness(0.6)" : undefined,
       }}
     />
   );
