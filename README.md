@@ -882,13 +882,24 @@ Thank you for playing PAWSTREET! 🐾📈
 
 ---
 
+Citations:
+
+OpenAI Codex — OpenAI. Codex: AI system that translates natural language to code. https://openai.com/blog/openai-codex
+React — Meta Open Source. React: A JavaScript library for building user interfaces. Version 18. https://react.dev
+GitHub — GitHub, Inc. GitHub: Where the world builds software. https://github.com
+JavaScript — ECMAScript 2024 Language Specification. ECMA International. https://ecma-international.org/publications-and-standards/standards/ecma-262
+HTML5 — World Wide Web Consortium (W3C). HTML5 Specification. https://html.spec.whatwg.org
+CSS3 — World Wide Web Consortium
+
+---
+
 **Project Stats:**
-- 📝 Lines of Code: ~6,200
-- 🎮 Features Implemented: 40+
-- ⏱️ Development Time: 5 months, 13 days
+- 📝 Lines of Code: ~7,300
+- 🎮 Features Implemented: 50+
+- ⏱️ Development Time: ~1 year
 - 💡 Original Concepts: 10+
 - 🏆 Competition: FBLA Intro to Programming 2025-2026
 
-*Last Updated: February 2026*
-*Version: 1.0.0*
+*Last Updated: June 2026*
+*Version: 1.3.4*
 *README Version: 2.0.0 (Competition Edition)*
